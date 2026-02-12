@@ -7,7 +7,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useKeyboard } from "@opentui/react";
 import { RGBA } from "@opentui/core";
-import type { DiscoveredEndpoint } from "../../../core/agent/driverModeAgent/targetExtractor";
+import type { DiscoveredEndpoint } from "../../../core/offensiveAgent/driverModeAgent/targetExtractor";
 
 // Color palette
 const greenBullet = RGBA.fromInts(76, 175, 80, 255);
@@ -40,7 +40,7 @@ export default function MentionAutocomplete({
         (e) =>
           e.id.toLowerCase().includes(lowerQuery) ||
           e.url.toLowerCase().includes(lowerQuery) ||
-          e.suggestedObjective.toLowerCase().includes(lowerQuery),
+          e.suggestedObjective.toLowerCase().includes(lowerQuery)
       )
       .slice(0, 5);
   }, [endpoints, query]);
@@ -59,7 +59,7 @@ export default function MentionAutocomplete({
 
     if (key.name === "down") {
       setSelectedIndex((prev) =>
-        Math.min(filteredEndpoints.length - 1, prev + 1),
+        Math.min(filteredEndpoints.length - 1, prev + 1)
       );
       return;
     }

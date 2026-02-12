@@ -16,8 +16,8 @@
 import { Daytona, Image, Sandbox } from "@daytonaio/sdk";
 import { existsSync, statSync, readdirSync, readFileSync } from "fs";
 import path from "path";
-import { parseDockerComposePort } from "../src/core/agent/benchmark/docker-utils";
-import { extractFlagFromRepo } from "../src/core/agent/benchmark/flag-detector";
+import { parseDockerComposePort } from "../src/core/offensiveAgent/benchmark/docker-utils";
+import { extractFlagFromRepo } from "../src/core/offensiveAgent/benchmark/flag-detector";
 
 // Global sandbox reference for cleanup
 let sandbox: Sandbox | undefined;
@@ -29,7 +29,7 @@ let isShuttingDown = false;
 function collectFilesRecursive(
   dirPath: string,
   baseDir: string,
-  files: Array<{ source: Buffer; destination: string }> = [],
+  files: Array<{ source: Buffer; destination: string }> = []
 ): Array<{ source: Buffer; destination: string }> {
   const entries = readdirSync(dirPath);
 
@@ -57,7 +57,7 @@ function collectFilesRecursive(
  */
 async function cleanup(
   benchmarkName: string,
-  remoteBenchmarkPath: string,
+  remoteBenchmarkPath: string
 ): Promise<void> {
   if (isShuttingDown) {
     console.log(`\n[${benchmarkName}] ⚠️  Already shutting down...`);
@@ -72,7 +72,7 @@ async function cleanup(
   }
 
   console.log(
-    `\n[${benchmarkName}] 🛑 Received shutdown signal, cleaning up...`,
+    `\n[${benchmarkName}] 🛑 Received shutdown signal, cleaning up...`
   );
 
   try {
@@ -84,12 +84,12 @@ async function cleanup(
           `cd ${remoteBenchmarkPath} && docker compose down --timeout 10`,
           undefined,
           undefined,
-          30000,
+          30000
         );
         console.log(`[${benchmarkName}] ✅ Docker compose stopped`);
       } catch (dockerError: any) {
         console.log(
-          `[${benchmarkName}] ⚠️  Docker stop failed: ${dockerError.message}`,
+          `[${benchmarkName}] ⚠️  Docker stop failed: ${dockerError.message}`
         );
       }
     }
@@ -118,7 +118,7 @@ async function cleanup(
     console.error(`[${benchmarkName}] ❌ Cleanup error: ${error.message}`);
     if (sandbox) {
       console.error(
-        `[${benchmarkName}] ⚠️  You may need to manually delete sandbox: ${sandbox.id}`,
+        `[${benchmarkName}] ⚠️  You may need to manually delete sandbox: ${sandbox.id}`
       );
     }
   }
@@ -129,39 +129,39 @@ async function main() {
 
   if (args.length < 2) {
     console.error(
-      "Usage: bun run scripts/sandbox-playground.ts <repo-path> <benchmark-id>",
+      "Usage: bun run scripts/sandbox-playground.ts <repo-path> <benchmark-id>"
     );
     console.error();
     console.error("Arguments:");
     console.error(
-      "  <repo-path>      Local path to XBEN challenges repository",
+      "  <repo-path>      Local path to XBEN challenges repository"
     );
     console.error("  <benchmark-id>   Benchmark ID (e.g., XBEN-001-24)");
     console.error();
     console.error("Options:");
     console.error(
-      "  --daytona-api-key <key>   Daytona API key (default: DAYTONA_API_KEY env)",
+      "  --daytona-api-key <key>   Daytona API key (default: DAYTONA_API_KEY env)"
     );
     console.error(
-      "  --daytona-org-id <id>     Daytona organization ID (default: DAYTONA_ORG_ID env)",
+      "  --daytona-org-id <id>     Daytona organization ID (default: DAYTONA_ORG_ID env)"
     );
     console.error();
     console.error("Environment Variables:");
     console.error("  DAYTONA_API_KEY           Daytona API key (required)");
     console.error(
-      "  DAYTONA_ORG_ID            Daytona organization ID (optional)",
+      "  DAYTONA_ORG_ID            Daytona organization ID (optional)"
     );
     console.error();
     console.error("Examples:");
     console.error(
-      "  bun run scripts/sandbox-playground.ts /path/to/xben-challenges XBEN-001-24",
+      "  bun run scripts/sandbox-playground.ts /path/to/xben-challenges XBEN-001-24"
     );
     console.error(
-      "  bun run scripts/sandbox-playground.ts ~/xben XBEN-002-24 --daytona-api-key xxx",
+      "  bun run scripts/sandbox-playground.ts ~/xben XBEN-002-24 --daytona-api-key xxx"
     );
     console.error();
     console.error(
-      "The sandbox will stay running until you press Ctrl+C to shut it down.",
+      "The sandbox will stay running until you press Ctrl+C to shut it down."
     );
     process.exit(1);
   }
@@ -198,7 +198,7 @@ async function main() {
   const benchmarkPath = path.join(repoPath, "benchmarks", benchmarkName);
   if (!existsSync(benchmarkPath)) {
     console.error(
-      `Error: Benchmark directory does not exist: ${benchmarkPath}`,
+      `Error: Benchmark directory does not exist: ${benchmarkPath}`
     );
     process.exit(1);
   }
@@ -236,11 +236,11 @@ async function main() {
   try {
     // Parse docker-compose port
     console.log(
-      `[${benchmarkName}] 🔍 Parsing docker-compose for web service...`,
+      `[${benchmarkName}] 🔍 Parsing docker-compose for web service...`
     );
     const portInfo = parseDockerComposePort(benchmarkPath);
     console.log(
-      `[${benchmarkName}] ✅ Found web service: ${portInfo.serviceName} on port ${portInfo.hostPort}`,
+      `[${benchmarkName}] ✅ Found web service: ${portInfo.serviceName} on port ${portInfo.hostPort}`
     );
 
     // Create Daytona client
@@ -248,11 +248,11 @@ async function main() {
 
     // Create sandbox with DinD support
     console.log(
-      `[${benchmarkName}] 🚀 Creating Daytona sandbox with Docker-in-Docker...`,
+      `[${benchmarkName}] 🚀 Creating Daytona sandbox with Docker-in-Docker...`
     );
 
     const dindImage = Image.base("docker:28.3.3-dind").runCommands(
-      "apk add --no-cache curl make bash coreutils git jq python3 py3-pip vim nano",
+      "apk add --no-cache curl make bash coreutils git jq python3 py3-pip vim nano"
     );
 
     sandbox = await daytona.create(
@@ -271,7 +271,7 @@ async function main() {
         },
         image: dindImage,
       },
-      { timeout: 300000 },
+      { timeout: 300000 }
     );
 
     console.log(`[${benchmarkName}] ✅ Sandbox created: ${sandbox.id}`);
@@ -287,7 +287,7 @@ async function main() {
       `(dockerd-entrypoint.sh dockerd --storage-driver=vfs > /var/log/dockerd.log 2>&1 &) || (dockerd --storage-driver=vfs --host=unix:///var/run/docker.sock > /var/log/dockerd.log 2>&1 &)`,
       undefined,
       undefined,
-      30000,
+      30000
     );
 
     // Wait for Docker daemon to be ready
@@ -300,7 +300,7 @@ async function main() {
         "docker version --format '{{.Server.Version}}' 2>&1",
         undefined,
         undefined,
-        10000,
+        10000
       );
 
       if (
@@ -309,7 +309,7 @@ async function main() {
         !dockerCheckResult.result.includes("Cannot connect")
       ) {
         console.log(
-          `[${benchmarkName}] ✅ Docker daemon version: ${dockerCheckResult.result.trim()}`,
+          `[${benchmarkName}] ✅ Docker daemon version: ${dockerCheckResult.result.trim()}`
         );
         dockerReady = true;
         break;
@@ -317,14 +317,16 @@ async function main() {
 
       if (attempt % 5 === 0) {
         console.log(
-          `[${benchmarkName}] ⏳ Docker not ready, waiting... (attempt ${attempt + 1}/30)`,
+          `[${benchmarkName}] ⏳ Docker not ready, waiting... (attempt ${
+            attempt + 1
+          }/30)`
         );
       }
     }
 
     if (!dockerReady) {
       throw new Error(
-        "Docker daemon failed to start in sandbox after 30 attempts",
+        "Docker daemon failed to start in sandbox after 30 attempts"
       );
     }
 
@@ -334,10 +336,10 @@ async function main() {
       "docker compose version || docker-compose version",
       undefined,
       undefined,
-      30000,
+      30000
     );
     console.log(
-      `[${benchmarkName}] ✅ Docker Compose: ${composeCheck.result?.trim()}`,
+      `[${benchmarkName}] ✅ Docker Compose: ${composeCheck.result?.trim()}`
     );
 
     // Upload benchmark directory
@@ -347,14 +349,14 @@ async function main() {
 
     const filesToUpload = collectFilesRecursive(benchmarkPath, benchmarkPath);
     console.log(
-      `[${benchmarkName}] 📁 Found ${filesToUpload.length} files to upload`,
+      `[${benchmarkName}] 📁 Found ${filesToUpload.length} files to upload`
     );
 
     const uploadFiles = filesToUpload.map((file) => ({
       source: file.source,
       destination: path.posix.join(
         remoteBenchmarkPath,
-        file.destination.replace(/\\/g, "/"),
+        file.destination.replace(/\\/g, "/")
       ),
     }));
 
@@ -365,7 +367,7 @@ async function main() {
       const batchNum = Math.floor(i / BATCH_SIZE) + 1;
       const totalBatches = Math.ceil(uploadFiles.length / BATCH_SIZE);
       console.log(
-        `[${benchmarkName}] 📤 Uploading batch ${batchNum}/${totalBatches}...`,
+        `[${benchmarkName}] 📤 Uploading batch ${batchNum}/${totalBatches}...`
       );
       await sandbox.fs.uploadFiles(batch, 300);
       if (i + BATCH_SIZE < uploadFiles.length) {
@@ -374,18 +376,18 @@ async function main() {
     }
 
     console.log(
-      `[${benchmarkName}] ✅ Benchmark uploaded to ${remoteBenchmarkPath}`,
+      `[${benchmarkName}] ✅ Benchmark uploaded to ${remoteBenchmarkPath}`
     );
 
     // Extract flag
     console.log(`[${benchmarkName}] 🔍 Extracting flag from benchmark...`);
     const expectedFlag = await extractFlagFromRepo(
       benchmarkPath,
-      benchmarkName,
+      benchmarkName
     );
     if (expectedFlag) {
       console.log(
-        `[${benchmarkName}] ✅ FLAG found: ${expectedFlag.substring(0, 20)}...`,
+        `[${benchmarkName}] ✅ FLAG found: ${expectedFlag.substring(0, 20)}...`
       );
     } else {
       console.log(`[${benchmarkName}] ⚠️  FLAG not found in benchmark`);
@@ -393,7 +395,7 @@ async function main() {
 
     // Build docker images
     console.log(
-      `[${benchmarkName}] 🔨 Building docker images with make build...`,
+      `[${benchmarkName}] 🔨 Building docker images with make build...`
     );
 
     const buildResult = await sandbox.process.executeCommand(
@@ -402,12 +404,12 @@ async function main() {
       {
         FLAG: expectedFlag || "",
       },
-      300000,
+      300000
     );
 
     if (buildResult.exitCode !== 0) {
       console.log(
-        `[${benchmarkName}] ⚠️  make build failed, trying docker compose build...`,
+        `[${benchmarkName}] ⚠️  make build failed, trying docker compose build...`
       );
       const composeResult = await sandbox.process.executeCommand(
         `cd ${remoteBenchmarkPath} && docker compose build`,
@@ -415,12 +417,12 @@ async function main() {
         {
           FLAG: expectedFlag || "",
         },
-        300000,
+        300000
       );
 
       if (composeResult.exitCode !== 0) {
         throw new Error(
-          `Failed to build docker images: ${composeResult.result}`,
+          `Failed to build docker images: ${composeResult.result}`
         );
       }
     }
@@ -433,12 +435,12 @@ async function main() {
       `cd ${remoteBenchmarkPath} && docker compose up -d --wait`,
       undefined,
       undefined,
-      180000,
+      180000
     );
 
     if (startDockerResult.exitCode !== 0) {
       throw new Error(
-        `Failed to start docker compose: ${startDockerResult.result}`,
+        `Failed to start docker compose: ${startDockerResult.result}`
       );
     }
 
@@ -453,12 +455,12 @@ async function main() {
       `cd ${remoteBenchmarkPath} && docker compose port ${portInfo.serviceName} ${portInfo.containerPort} 2>/dev/null | cut -d: -f2 || echo "${portInfo.hostPort}"`,
       undefined,
       undefined,
-      30000,
+      30000
     );
 
     const actualHostPort = parseInt(
       portQueryResult.result?.trim() || String(portInfo.hostPort),
-      10,
+      10
     );
     const targetUrl = `http://localhost:${actualHostPort}`;
 
@@ -472,7 +474,7 @@ async function main() {
       `cd ${remoteBenchmarkPath} && docker compose ps`,
       undefined,
       undefined,
-      30000,
+      30000
     );
 
     console.log("\n" + "=".repeat(80));
@@ -499,19 +501,19 @@ async function main() {
     console.log("📝 USEFUL COMMANDS (run inside sandbox):");
     console.log("=".repeat(80));
     console.log(
-      `  curl ${targetUrl}                    # Test the web service`,
+      `  curl ${targetUrl}                    # Test the web service`
     );
     console.log(`  docker compose logs -f              # View container logs`);
     console.log(
-      `  docker compose ps                   # List running containers`,
+      `  docker compose ps                   # List running containers`
     );
     console.log(
-      `  docker compose exec <svc> sh        # Shell into a container`,
+      `  docker compose exec <svc> sh        # Shell into a container`
     );
     console.log();
     console.log("=".repeat(80));
     console.log(
-      "🛑 Press Ctrl+C to gracefully shutdown and cleanup the sandbox",
+      "🛑 Press Ctrl+C to gracefully shutdown and cleanup the sandbox"
     );
     console.log("=".repeat(80));
     console.log();

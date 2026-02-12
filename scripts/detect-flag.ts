@@ -22,7 +22,7 @@ import {
   extractFlagFromRepo,
   computeBenchmarkFlag,
   extractBenchmarkName,
-} from "../src/core/agent/benchmark/flag-detector";
+} from "../src/core/offensiveAgent/benchmark/flag-detector";
 
 interface SessionJson {
   target?: {
@@ -118,13 +118,13 @@ async function main() {
 
   console.log("");
   console.log(
-    "═══════════════════════════════════════════════════════════════",
+    "═══════════════════════════════════════════════════════════════"
   );
   console.log(
-    "                    FLAG DETECTION SCANNER                      ",
+    "                    FLAG DETECTION SCANNER                      "
   );
   console.log(
-    "═══════════════════════════════════════════════════════════════",
+    "═══════════════════════════════════════════════════════════════"
   );
   console.log("");
   console.log(`Session: ${sessionPath}`);
@@ -144,7 +144,7 @@ async function main() {
       if (existsSync(sessionJsonPath)) {
         try {
           const sessionData: SessionJson = JSON.parse(
-            readFileSync(sessionJsonPath, "utf-8"),
+            readFileSync(sessionJsonPath, "utf-8")
           );
           expectedFlag =
             sessionData.target?.flag ||
@@ -163,10 +163,10 @@ async function main() {
             if (detectedBenchmark) {
               expectedFlag = computeBenchmarkFlag(detectedBenchmark);
               console.log(
-                `Benchmark: ${detectedBenchmark} (detected from session)`,
+                `Benchmark: ${detectedBenchmark} (detected from session)`
               );
               console.log(
-                `Flag:      ${expectedFlag} (computed from benchmark name)`,
+                `Flag:      ${expectedFlag} (computed from benchmark name)`
               );
             }
           }
@@ -180,12 +180,12 @@ async function main() {
     if (!expectedFlag) {
       const benchmarkResultsPath = path.join(
         sessionPath,
-        "benchmark_results.json",
+        "benchmark_results.json"
       );
       if (existsSync(benchmarkResultsPath)) {
         try {
           const results = JSON.parse(
-            readFileSync(benchmarkResultsPath, "utf-8"),
+            readFileSync(benchmarkResultsPath, "utf-8")
           );
           expectedFlag = results.expectedFlag || results.flag || null;
 
@@ -194,11 +194,11 @@ async function main() {
             expectedFlag = computeBenchmarkFlag(results.benchmarkName);
             console.log(`Benchmark: ${results.benchmarkName}`);
             console.log(
-              `Flag:      ${expectedFlag} (computed from benchmark_results.json)`,
+              `Flag:      ${expectedFlag} (computed from benchmark_results.json)`
             );
           } else if (expectedFlag) {
             console.log(
-              `Flag:    ${expectedFlag} (from benchmark_results.json)`,
+              `Flag:    ${expectedFlag} (from benchmark_results.json)`
             );
           }
         } catch (e) {
@@ -225,10 +225,10 @@ async function main() {
       if (detectedBenchmark) {
         expectedFlag = computeBenchmarkFlag(detectedBenchmark);
         console.log(
-          `Benchmark: ${detectedBenchmark} (detected from session path)`,
+          `Benchmark: ${detectedBenchmark} (detected from session path)`
         );
         console.log(
-          `Flag:      ${expectedFlag} (computed from benchmark name)`,
+          `Flag:      ${expectedFlag} (computed from benchmark name)`
         );
       }
     }
@@ -239,17 +239,17 @@ async function main() {
   // Validate we have a flag
   if (!expectedFlag) {
     console.error(
-      "\nError: No flag found. Please provide one using --flag or ensure session.json contains it.",
+      "\nError: No flag found. Please provide one using --flag or ensure session.json contains it."
     );
     console.error(
-      "       You can also use --repo to extract the flag from a repository.\n",
+      "       You can also use --repo to extract the flag from a repository.\n"
     );
     process.exit(1);
   }
 
   console.log("");
   console.log(
-    "───────────────────────────────────────────────────────────────",
+    "───────────────────────────────────────────────────────────────"
   );
   console.log("");
 
@@ -257,18 +257,18 @@ async function main() {
   const result = await detectFlagInArtifacts(
     sessionPath,
     expectedFlag,
-    "detect-flag",
+    "detect-flag"
   );
 
   console.log("");
   console.log(
-    "───────────────────────────────────────────────────────────────",
+    "───────────────────────────────────────────────────────────────"
   );
   console.log(
-    "                         RESULTS                               ",
+    "                         RESULTS                               "
   );
   console.log(
-    "───────────────────────────────────────────────────────────────",
+    "───────────────────────────────────────────────────────────────"
   );
   console.log("");
 
@@ -297,7 +297,7 @@ async function main() {
       }
       if (result.locations.length > 10) {
         console.log(
-          `  ... and ${result.locations.length - 10} more occurrences`,
+          `  ... and ${result.locations.length - 10} more occurrences`
         );
       }
     }
@@ -313,7 +313,7 @@ async function main() {
 
   console.log("");
   console.log(
-    "═══════════════════════════════════════════════════════════════",
+    "═══════════════════════════════════════════════════════════════"
   );
   console.log("");
 

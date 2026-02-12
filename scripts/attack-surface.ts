@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 
-import { runAgent } from "../src/core/agent/attackSurfaceAgent/agent";
+import { runAgent } from "../src/core/offensiveAgent/attackSurfaceAgent/agent";
 import { Session } from "../src/core/session";
 import type { AIModel } from "../src/core/ai";
 import { readFileSync, existsSync } from "fs";
@@ -36,7 +36,13 @@ async function runAttackSurface(options: AttackSurfaceOptions): Promise<void> {
   console.log(`Objective: ${objective}`);
   console.log(`Model: ${model}`);
   console.log(
-    `Headers: ${headerMode === "none" ? "None" : headerMode === "default" ? "Default (pensar-apex)" : "Custom"}`,
+    `Headers: ${
+      headerMode === "none"
+        ? "None"
+        : headerMode === "default"
+        ? "Default (pensar-apex)"
+        : "Custom"
+    }`
   );
   if (headerMode === "custom" && customHeaders) {
     for (const [key, value] of Object.entries(customHeaders)) {
@@ -116,7 +122,7 @@ async function runAttackSurface(options: AttackSurfaceOptions): Promise<void> {
             delta.input.toolCallDescription
               ? `: ${delta.input.toolCallDescription}`
               : ""
-          }`,
+          }`
         );
       } else if (delta.type === "tool-result") {
         console.log(`[Tool Result] Completed\n`);
@@ -146,7 +152,9 @@ async function runAttackSurface(options: AttackSurfaceOptions): Promise<void> {
 
         if (results.discoveredAssets && results.discoveredAssets.length > 0) {
           console.log(
-            `\nTotal Assets: ${results.summary?.totalAssets || results.discoveredAssets.length}`,
+            `\nTotal Assets: ${
+              results.summary?.totalAssets || results.discoveredAssets.length
+            }`
           );
           console.log(`\nAssets:`);
           results.discoveredAssets.forEach((asset: string, index: number) => {
@@ -158,7 +166,7 @@ async function runAttackSurface(options: AttackSurfaceOptions): Promise<void> {
 
         if (results.targets && results.targets.length > 0) {
           console.log(
-            `\n\nTargets for Deep Testing: ${results.targets.length}`,
+            `\n\nTargets for Deep Testing: ${results.targets.length}`
           );
           results.targets.forEach((target: any, index: number) => {
             console.log(`  ${index + 1}. ${target.target}`);
@@ -171,7 +179,7 @@ async function runAttackSurface(options: AttackSurfaceOptions): Promise<void> {
     } catch (error) {
       // Silently ignore if results file doesn't exist or can't be read
       console.log(
-        "\nNote: Could not read attack surface results for endpoint display",
+        "\nNote: Could not read attack surface results for endpoint display"
       );
     }
   } catch (error: any) {
@@ -190,52 +198,52 @@ async function main() {
 
   if (args.length === 0 || args.includes("--help") || args.includes("-h")) {
     console.error(
-      "Usage: tsx scripts/attack-surface.ts --target <target> [options]",
+      "Usage: tsx scripts/attack-surface.ts --target <target> [options]"
     );
     console.error();
     console.error("Required:");
     console.error(
-      "  --target <target>        Target URL, domain, IP, or organization to analyze",
+      "  --target <target>        Target URL, domain, IP, or organization to analyze"
     );
     console.error();
     console.error("Options:");
     console.error(
-      "  --model <model>          AI model to use (default: claude-sonnet-4-5)",
+      "  --model <model>          AI model to use (default: claude-sonnet-4-5)"
     );
     console.error(
-      "                           Options: claude-sonnet-4-5, claude-opus-4, claude-haiku-4",
+      "                           Options: claude-sonnet-4-5, claude-opus-4, claude-haiku-4"
     );
     console.error(
-      "  --objective <text>       Custom objective for the analysis",
+      "  --objective <text>       Custom objective for the analysis"
     );
     console.error(
-      "  --headers <mode>         Header mode: none, default, or custom (default: default)",
+      "  --headers <mode>         Header mode: none, default, or custom (default: default)"
     );
     console.error(
-      "  --header <name:value>    Add custom header (requires --headers custom, can be repeated)",
+      "  --header <name:value>    Add custom header (requires --headers custom, can be repeated)"
     );
     console.error("  --strict-scope           Enable strict scope constraints");
     console.error(
-      "  --allowed-host <host>    Allowed host for strict scope (can be repeated)",
+      "  --allowed-host <host>    Allowed host for strict scope (can be repeated)"
     );
     console.error(
-      "  --allowed-port <port>    Allowed port for strict scope (can be repeated)",
+      "  --allowed-port <port>    Allowed port for strict scope (can be repeated)"
     );
     console.error();
     console.error("Header Modes:");
     console.error(
-      "  none                     No custom headers added to requests",
+      "  none                     No custom headers added to requests"
     );
     console.error(
-      "  default                  Add 'User-Agent: pensar-apex' to all offensive requests",
+      "  default                  Add 'User-Agent: pensar-apex' to all offensive requests"
     );
     console.error(
-      "  custom                   Use custom headers defined with --header flag",
+      "  custom                   Use custom headers defined with --header flag"
     );
     console.error();
     console.error("Scope Constraints:");
     console.error(
-      "  --strict-scope mode restricts testing to only specified hosts/ports.",
+      "  --strict-scope mode restricts testing to only specified hosts/ports."
     );
     console.error("  Useful for bug bounty programs with defined scope.");
     console.error();
@@ -253,23 +261,23 @@ async function main() {
     console.error();
     console.error("  # Use faster model for quick reconnaissance");
     console.error(
-      "  tsx scripts/attack-surface.ts --target example.com --model claude-haiku-4",
+      "  tsx scripts/attack-surface.ts --target example.com --model claude-haiku-4"
     );
     console.error();
     console.error("  # Strict scope for bug bounty (only test specific host)");
     console.error(
-      "  tsx scripts/attack-surface.ts --target https://app.example.com \\",
+      "  tsx scripts/attack-surface.ts --target https://app.example.com \\"
     );
     console.error(
-      "    --strict-scope --allowed-host app.example.com --allowed-port 443",
+      "    --strict-scope --allowed-host app.example.com --allowed-port 443"
     );
     console.error();
     console.error("  # Custom headers for authenticated testing");
     console.error(
-      "  tsx scripts/attack-surface.ts --target api.example.com --headers custom \\",
+      "  tsx scripts/attack-surface.ts --target api.example.com --headers custom \\"
     );
     console.error(
-      "    --header 'Authorization: Bearer token123' --header 'X-API-Key: key456'",
+      "    --header 'Authorization: Bearer token123' --header 'X-API-Key: key456'"
     );
     console.error();
     process.exit(args.length === 0 ? 1 : 0);
@@ -360,7 +368,7 @@ async function main() {
 
   if (headerMode === "custom" && Object.keys(customHeaders).length === 0) {
     console.error(
-      "Error: --headers custom requires at least one --header flag",
+      "Error: --headers custom requires at least one --header flag"
     );
     process.exit(1);
   }
@@ -384,14 +392,14 @@ async function main() {
       const port = args[i + 1];
       if (!port) {
         console.error(
-          "Error: --allowed-port must be followed by a port number",
+          "Error: --allowed-port must be followed by a port number"
         );
         process.exit(1);
       }
       const portNum = parseInt(port, 10);
       if (isNaN(portNum) || portNum < 1 || portNum > 65535) {
         console.error(
-          "Error: --allowed-port must be a valid port number (1-65535)",
+          "Error: --allowed-port must be a valid port number (1-65535)"
         );
         process.exit(1);
       }
@@ -402,7 +410,7 @@ async function main() {
   // Validate scope constraints
   if (!strictScope && (allowedHosts.length > 0 || allowedPorts.length > 0)) {
     console.error(
-      "Error: --allowed-host and --allowed-port require --strict-scope",
+      "Error: --allowed-host and --allowed-port require --strict-scope"
     );
     process.exit(1);
   }
