@@ -1,7 +1,7 @@
 import { tool } from "ai";
 import { z } from "zod";
 import type { ToolContext } from "./types";
-import { generatePentestReport } from "../legacy/reportGeneratorAgent";
+import { generatePentestReport } from "../../agents/legacy/reportGeneratorAgent/agent";
 
 /**
  * Factory for the `generate_report` tool.
@@ -60,10 +60,11 @@ The report is written to the session directory as pentest-report.md.`,
           success: false,
           message: `Report generation failed: ${result.error}`,
         };
-      } catch (error: any) {
+      } catch (error: unknown) {
+        const errorMsg = error instanceof Error ? error.message : String(error);
         return {
           success: false,
-          message: `Report generation error: ${error.message}`,
+          message: `Report generation error: ${errorMsg}`,
         };
       }
     },

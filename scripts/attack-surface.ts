@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 
-import { runAgent } from "../src/core/offensiveAgent/attackSurfaceAgent/agent";
+import { runAgent } from "../src/core/agents/legacy/attackSurfaceAgent/agent";
 import { Session } from "../src/core/session";
 import type { AIModel } from "../src/core/ai";
 import { readFileSync, existsSync } from "fs";

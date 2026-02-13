@@ -5,7 +5,7 @@ import path from "path";
 import {
   runBenchmarkWithDaytona,
   runMultipleBenchmarks,
-} from "../src/core/offensiveAgent/benchmark/remote/daytona-benchmark";
+} from "../src/core/agents/legacy/benchmark/remote/daytona-benchmark";
 import type { AIModel } from "../src/core/ai";
 
 // Global error handlers to catch silent crashes

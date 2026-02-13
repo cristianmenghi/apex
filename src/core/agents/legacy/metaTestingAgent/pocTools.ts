@@ -36,6 +36,7 @@ import type { ExecuteCommandOpts, ExecuteCommandResult } from "../tools";
 import { scoreFindingWithCVSS, DEFAULT_CVSS_MODEL } from "../cvssScorer";
 import type { AIModel } from "../../../ai";
 import type { CVSS4Metrics } from "../../../../lib/cvss";
+import type { AIAuthConfig } from "../../../ai/utils";
 
 /** Options for CVSS scoring in document_finding tool */
 export interface DocumentFindingCVSSOptions {

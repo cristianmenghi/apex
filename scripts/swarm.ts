@@ -2,11 +2,11 @@ import { promisify } from "node:util";
 import type {
   ExecuteCommandOpts,
   ExecuteCommandResult,
-} from "../src/core/offensiveAgent/tools";
+} from "../src/core/agents/legacy/tools";
 import type { AIModel } from "../src/core/ai";
 import { Session } from "../src/core/session";
 import { exec as _exec } from "node:child_process";
-import { runStreamlinedPentest } from "../src/core/offensiveAgent/legacy/thoroughPentestAgent";
+import { runStreamlinedPentest } from "../src/core/agents/legacy/thoroughPentestAgent";
 
 const exec = promisify(_exec);
 

@@ -31,7 +31,7 @@ import type {
   HttpRequestOpts,
   HttpRequestResult,
 } from "../tools";
-import type { VulnerabilityClass } from "./types";
+import type { AuthenticationInfo, VulnerabilityClass } from "./types";
 import { generateRandomName } from "../../../../util/name";
 
 /**

@@ -6,8 +6,8 @@
  */
 
 import { z } from "zod";
-import { generateObjectResponse, type AIModel } from "../../ai";
-import type { AIAuthConfig } from "../../ai/utils";
+import { generateObjectResponse, type AIModel } from "../../../ai";
+import type { AIAuthConfig } from "../../../ai/utils";
 import type { PentestTarget } from "../attackSurfaceAgent/types";
 
 /**
@@ -72,7 +72,7 @@ export function parseAtMentions(message: string): string[] {
  */
 export function findEndpoint(
   mention: string,
-  endpoints: DiscoveredEndpoint[],
+  endpoints: DiscoveredEndpoint[]
 ): DiscoveredEndpoint | undefined {
   // Try exact ID match first
   let endpoint = endpoints.find((e) => e.id === mention);
@@ -80,7 +80,7 @@ export function findEndpoint(
 
   // Try URL contains match
   endpoint = endpoints.find(
-    (e) => e.url.includes(mention) || mention.includes(e.url),
+    (e) => e.url.includes(mention) || mention.includes(e.url)
   );
   if (endpoint) return endpoint;
 
@@ -102,7 +102,7 @@ export function findEndpoint(
  * - Objective inference from context
  */
 export async function extractPentestTarget(
-  input: ExtractTargetInput,
+  input: ExtractTargetInput
 ): Promise<PentestTarget> {
   const { userMessage, discoveredEndpoints, model, onTokenUsage, authConfig } =
     input;
@@ -117,7 +117,7 @@ export async function extractPentestTarget(
         // Extract objective from the rest of the message or use default
         const objectiveFromMessage = extractObjectiveFromMessage(
           userMessage,
-          endpoint,
+          endpoint
         );
         return {
           target: endpoint.url,
@@ -193,7 +193,7 @@ Return a JSON object with:
 
     throw new Error(
       "Could not extract target from message. Please specify a URL or @mention an endpoint.",
-      { cause: error },
+      { cause: error }
     );
   }
 }
@@ -203,7 +203,7 @@ Return a JSON object with:
  */
 function extractObjectiveFromMessage(
   message: string,
-  endpoint: DiscoveredEndpoint,
+  endpoint: DiscoveredEndpoint
 ): string | null {
   // Remove @mentions to get the rest of the message
   const cleanMessage = message.replace(/@\S+/g, "").trim();
@@ -263,7 +263,7 @@ function extractObjectiveFromMessage(
  * Validate that a PentestTarget has required fields
  */
 export function isValidPentestTarget(
-  target: Partial<PentestTarget>,
+  target: Partial<PentestTarget>
 ): target is PentestTarget {
   return (
     typeof target.target === "string" &&

@@ -16,8 +16,8 @@
 import { Daytona, Image, Sandbox } from "@daytonaio/sdk";
 import { existsSync, statSync, readdirSync, readFileSync } from "fs";
 import path from "path";
-import { parseDockerComposePort } from "../src/core/offensiveAgent/benchmark/docker-utils";
-import { extractFlagFromRepo } from "../src/core/offensiveAgent/benchmark/flag-detector";
+import { parseDockerComposePort } from "../src/core/agents/legacy/benchmark/docker-utils";
+import { extractFlagFromRepo } from "../src/core/agents/legacy/benchmark/flag-detector";
 
 // Global sandbox reference for cleanup
 let sandbox: Sandbox | undefined;

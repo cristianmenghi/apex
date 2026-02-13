@@ -23,10 +23,10 @@
 import {
   discoverAuthentication,
   runAuthenticationSubagent,
-} from "../src/core/offensiveAgent/authenticationSubagent";
+} from "../src/core/agents/legacy/authenticationSubagent";
 import { Session } from "../src/core/session";
 import type { AIModel } from "../src/core/ai";
-import type { AuthCredentials } from "../src/core/offensiveAgent/authenticationSubagent/types";
+import type { AuthCredentials } from "../src/core/agents/legacy/authenticationSubagent/types";
 import { existsSync, mkdirSync, writeFileSync } from "fs";
 import { join } from "path";
 

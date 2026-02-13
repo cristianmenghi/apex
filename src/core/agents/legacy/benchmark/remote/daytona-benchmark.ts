@@ -1,6 +1,6 @@
 import { Daytona, Image, Sandbox } from "@daytonaio/sdk";
-import type { AIModel } from "../../../ai";
-import { Session } from "../../../session";
+import type { AIModel } from "../../../../ai";
+import { Session } from "../../../../session";
 import {
   extractFlagFromRepo,
   detectFlagInArtifacts,
@@ -8,7 +8,7 @@ import {
   detectMultipleFlagsInArtifacts,
 } from "../flag-detector";
 import { runComparisonAgent } from "../comparisonAgent";
-import { runStreamlinedPentest } from "../../legacy/thoroughPentestAgent/streamlined";
+import { runStreamlinedPentest } from "../../../legacy/thoroughPentestAgent/streamlined";
 import type { BenchmarkResults } from "../types";
 import type {
   ExecuteCommandOpts,

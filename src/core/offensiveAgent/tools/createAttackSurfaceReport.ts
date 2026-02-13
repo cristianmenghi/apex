@@ -3,7 +3,7 @@ import { z } from "zod";
 import { join } from "path";
 import { writeFileSync } from "fs";
 import type { ToolContext } from "./types";
-import type { AttackSurfaceReport } from "../../attackSurfaceAgent/schemas";
+import type { AttackSurfaceReport } from "../../agents/legacy/attackSurfaceAgent/schemas";
 
 /**
  * Factory for the `create_attack_surface_report` tool.

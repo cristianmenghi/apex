@@ -29,4 +29,4 @@ export type Finding = z.infer<typeof ApexFindingObject>;
 export type {
   CreatePocInput as CreatePocOpts,
   CreatePocResult,
-} from "./legacy/metaTestingAgent/types";
+} from "./metaTestingAgent/types";

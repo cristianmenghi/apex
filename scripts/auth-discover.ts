@@ -10,7 +10,7 @@
  *   tsx scripts/auth-discover.ts --target https://example.com/api/users
  */
 
-import { discoverAuthentication } from "../src/core/offensiveAgent/authenticationSubagent";
+import { discoverAuthentication } from "../src/core/agents/legacy/authenticationSubagent";
 import { Session } from "../src/core/session";
 import type { AIModel } from "../src/core/ai";
 

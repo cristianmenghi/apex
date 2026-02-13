@@ -6,7 +6,8 @@ import type { ToolContext } from "./types";
 import {
   runAuthenticationSubagent,
   type AuthCredentials,
-} from "../../authenticationSubagent";
+  type AuthMethod,
+} from "../../agents/legacy/authenticationSubagent";
 import type { Session } from "../../session";
 
 /**
@@ -245,7 +246,7 @@ When to use delegate_to_auth_subagent vs authenticate_session:
               ? {
                   loginEndpoints: loginUrl ? [loginUrl] : undefined,
                   protectedEndpoints: authHints.protectedEndpoints,
-                  authScheme: authHints.authScheme as any,
+                  authScheme: authHints.authScheme as AuthMethod | undefined,
                   csrfRequired: authHints.csrfRequired,
                 }
               : undefined,
@@ -309,11 +310,12 @@ When to use delegate_to_auth_subagent vs authenticate_session:
                   : ""
               }`,
         };
-      } catch (error: any) {
+      } catch (error: unknown) {
+        const errorMsg = error instanceof Error ? error.message : String(error);
         return {
           success: false,
           authenticated: false,
-          message: `Auth subagent delegation failed: ${error.message}`,
+          message: `Auth subagent delegation failed: ${errorMsg}`,
         };
       }
     },

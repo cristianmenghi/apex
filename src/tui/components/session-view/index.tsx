@@ -17,14 +17,20 @@ import {
 import {
   runStreamlinedPentest,
   type StreamlinedPentestProgress,
-} from "../../../core/offensiveAgent/legacy/thoroughPentestAgent/streamlined";
+} from "../../../core/agents/legacy/thoroughPentestAgent/streamlined";
 import type {
   SubAgentSpawnInfo,
   SubAgentStreamEvent,
 } from "../../../core/agents/legacy/orchestrator/orchestrator";
-import type { MetaVulnerabilityTestResult } from "../../../core/agents/legacy/metaTestingAgent";
-import { saveAgentMessages } from "../../../core/agents/legacy/metaTestingAgent";
-import { existsSync } from "fs";
+import type {
+  MetaVulnerabilityTestResult,
+  VulnerabilityClass,
+} from "../../../core/agents/legacy/metaTestingAgent";
+import {
+  runMetaVulnerabilityTestAgent,
+  saveAgentMessages,
+} from "../../../core/agents/legacy/metaTestingAgent";
+import { existsSync, readFileSync } from "fs";
 import { exec } from "child_process";
 import { join } from "path";
 import { SpinnerDots } from "../sprites";

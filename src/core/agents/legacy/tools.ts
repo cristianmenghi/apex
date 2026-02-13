@@ -14,7 +14,7 @@ import { join } from "path";
 import { Session } from "../../session";
 import type { AIModel } from "../../ai";
 import { generateObjectResponse } from "../../ai";
-import { getProviderModel } from "../../ai/utils";
+import { getProviderModel, type AIAuthConfig } from "../../ai/utils";
 import { generateText } from "ai";
 import pLimit from "p-limit";
 

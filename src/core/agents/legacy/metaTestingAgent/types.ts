@@ -1,12 +1,12 @@
 import { z } from "zod";
 import type { Session } from "../../../session";
-import type { PentestTarget } from "../../attackSurfaceAgent/types";
+import type { PentestTarget } from "../attackSurfaceAgent/types";
 import type {
   ExecuteCommandOpts,
   ExecuteCommandResult,
   HttpRequestOpts,
   HttpRequestResult,
-} from "../../tools";
+} from "../tools";
 
 /**
  * Vulnerability class types (shared with VulnerabilityTestAgent for compatibility)

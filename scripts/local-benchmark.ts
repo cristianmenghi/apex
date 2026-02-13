@@ -13,25 +13,25 @@ import { exec as nodeExec } from "child_process";
 import { promisify } from "util";
 import type { AIModel } from "../src/core/ai";
 import pLimit from "p-limit";
-import type { BenchmarkResults } from "../src/core/offensiveAgent/benchmark/types";
+import type { BenchmarkResults } from "../src/core/agents/legacy/benchmark/types";
 import {
   parseDockerComposePort,
   getActualDockerPort,
-} from "../src/core/offensiveAgent/benchmark/docker-utils";
+} from "../src/core/agents/legacy/benchmark/docker-utils";
 import { Session } from "../src/core/session";
-import { runStreamlinedPentest } from "../src/core/offensiveAgent/legacy/thoroughPentestAgent/streamlined";
+import { runStreamlinedPentest } from "../src/core/agents/legacy/thoroughPentestAgent/streamlined";
 import {
   extractFlagFromRepo,
   detectFlagInArtifacts,
   extractPACEFlags,
   detectMultipleFlagsInArtifacts,
-} from "../src/core/offensiveAgent/benchmark/flag-detector";
+} from "../src/core/agents/legacy/benchmark/flag-detector";
 import type {
   ExecuteCommandOpts,
   ExecuteCommandResult,
   HttpRequestOpts,
   HttpRequestResult,
-} from "../src/core/offensiveAgent/tools";
+} from "../src/core/agents/legacy/tools";
 
 const exec = promisify(nodeExec);
 

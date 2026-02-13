@@ -5,11 +5,12 @@
  * attack surface agent and orchestrator.
  */
 
-import type { AIModel } from "../../ai";
-import type { Session } from "../../session";
+import type { AIModel } from "../../../ai";
+import type { Session } from "../../../session";
 import { runAuthenticationSubagent } from "./agent";
 import { AuthStateManager } from "./authStateManager";
 import type {
+  AuthenticationSubagentInput,
   AuthenticationSubagentResult,
   AuthCredentials,
   AuthFlowHints,
@@ -59,7 +60,7 @@ export interface EnsureAuthenticatedResult {
  * Use this in the orchestrator before spawning test agents.
  */
 export async function ensureAuthenticated(
-  opts: EnsureAuthenticatedOptions,
+  opts: EnsureAuthenticatedOptions
 ): Promise<EnsureAuthenticatedResult> {
   const { config, model, forceRefresh = false, abortSignal } = opts;
   const { target, session, credentials, authFlowHints } = config;
@@ -148,7 +149,7 @@ export async function ensureAuthenticated(
  */
 export function checkAuthStatus(
   session: Session.SessionInfo,
-  target: string,
+  target: string
 ): { valid: boolean; needsRefresh: boolean; status: string } {
   const targetHost = extractHost(target);
   const authStateManager = new AuthStateManager(session, targetHost);
@@ -174,7 +175,7 @@ export function checkAuthStatus(
  */
 export function getExistingAuth(
   session: Session.SessionInfo,
-  target: string,
+  target: string
 ): ExportedAuthInfo | undefined {
   const targetHost = extractHost(target);
   const authStateManager = new AuthStateManager(session, targetHost);
@@ -198,7 +199,7 @@ export function getExistingAuth(
  * by the orchestrator and test agents.
  */
 export function buildTargetAuthInfo(
-  result: AuthenticationSubagentResult,
+  result: AuthenticationSubagentResult
 ):
   | { method: string; details: string; cookies?: string; headers?: string }
   | undefined {
