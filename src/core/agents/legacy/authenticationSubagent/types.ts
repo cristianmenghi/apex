@@ -396,7 +396,7 @@ export const ValidateSessionInputSchema = z.object({
     })
     .optional()
     .describe(
-      "Pre-existing tokens to validate. If provided, these will be tested and stored on success."
+      "Pre-existing tokens to validate. If provided, these will be tested and stored on success.",
     ),
 });
 
@@ -411,7 +411,7 @@ export const RefreshSessionInputSchema = z.object({
     .boolean()
     .default(true)
     .describe(
-      "Whether to re-authenticate with original credentials if refresh fails"
+      "Whether to re-authenticate with original credentials if refresh fails",
     ),
   toolCallDescription: z
     .string()
@@ -598,7 +598,7 @@ export const AttemptRegistrationInputSchema = z.object({
   requiredFields: z
     .record(z.string(), z.string())
     .describe(
-      "Required field values (e.g., { email: 'test@example.com', username: 'testuser', password: 'Test123!' })"
+      "Required field values (e.g., { email: 'test@example.com', username: 'testuser', password: 'Test123!' })",
     ),
   toolCallDescription: z
     .string()

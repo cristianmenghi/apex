@@ -52,7 +52,7 @@ interface PocRunResult {
 async function rerunAllPocs(
   sessionPath: string,
   benchmarkName: string,
-  targetUrl: string
+  targetUrl: string,
 ): Promise<{
   total: number;
   passed: number;
@@ -65,7 +65,7 @@ async function rerunAllPocs(
   // Check if pocs directory exists
   if (!existsSync(pocsDir)) {
     console.log(
-      `[${benchmarkName}] 📁 No POCs directory found, skipping POC re-run`
+      `[${benchmarkName}] 📁 No POCs directory found, skipping POC re-run`,
     );
     return { total: 0, passed: 0, failed: 0, results: [] };
   }
@@ -76,7 +76,7 @@ async function rerunAllPocs(
   // Find all POC files
   const files = readdirSync(pocsDir);
   const pocFiles = files.filter(
-    (f) => f.endsWith(".sh") || f.endsWith(".html")
+    (f) => f.endsWith(".sh") || f.endsWith(".html"),
   );
 
   if (pocFiles.length === 0) {
@@ -153,7 +153,7 @@ Timestamp: ${new Date().toISOString()}
       };
       passed++;
       console.log(
-        `[${benchmarkName}]   ✅ ${pocFile} (${(duration / 1000).toFixed(1)}s)`
+        `[${benchmarkName}]   ✅ ${pocFile} (${(duration / 1000).toFixed(1)}s)`,
       );
     } catch (error: any) {
       const duration = Date.now() - startTime;
@@ -169,7 +169,7 @@ Timestamp: ${new Date().toISOString()}
       };
       failed++;
       console.log(
-        `[${benchmarkName}]   ❌ ${pocFile} (exit code: ${result.exitCode})`
+        `[${benchmarkName}]   ❌ ${pocFile} (exit code: ${result.exitCode})`,
       );
     }
 
@@ -225,7 +225,7 @@ ${
   writeFileSync(summaryPath, JSON.stringify(summary, null, 2));
 
   console.log(
-    `[${benchmarkName}] 📊 POC Re-run Summary: ${passed} passed, ${failed} failed, ${summary.skipped} skipped`
+    `[${benchmarkName}] 📊 POC Re-run Summary: ${passed} passed, ${failed} failed, ${summary.skipped} skipped`,
   );
   console.log(`[${benchmarkName}] 📁 POC logs saved to: ${logsDir}`);
 
@@ -257,7 +257,7 @@ function getCompletedBenchmarks(prefix?: string, isPace?: boolean): string[] {
   const executionsDir = path.join(
     process.env.HOME || "",
     ".pensar",
-    "executions"
+    "executions",
   );
 
   if (!existsSync(executionsDir)) {
@@ -274,13 +274,13 @@ function getCompletedBenchmarks(prefix?: string, isPace?: boolean): string[] {
     // Patterns for XBEN benchmarks
     const xbenNewPattern = new RegExp(`^${patternPrefix}-(XBEN-\\d+-\\d+)ses_`);
     const xbenLegacyPattern = new RegExp(
-      `^${patternPrefix}-(XBEN-\\d+-\\d+)-[a-z0-9]+$`
+      `^${patternPrefix}-(XBEN-\\d+-\\d+)-[a-z0-9]+$`,
     );
 
     // Patterns for PACEbench FullChain benchmarks
     const paceNewPattern = new RegExp(`^${patternPrefix}-(FullChain\\d+)ses_`);
     const paceLegacyPattern = new RegExp(
-      `^${patternPrefix}-(FullChain\\d+)-[a-z0-9]+$`
+      `^${patternPrefix}-(FullChain\\d+)-[a-z0-9]+$`,
     );
 
     for (const entry of entries) {
@@ -308,7 +308,7 @@ function getCompletedBenchmarks(prefix?: string, isPace?: boolean): string[] {
     return Array.from(completedBenchmarks);
   } catch (error: any) {
     console.warn(
-      `Warning: Failed to read executions directory: ${error.message}`
+      `Warning: Failed to read executions directory: ${error.message}`,
     );
     return [];
   }
@@ -338,8 +338,8 @@ function enumerateXBENBenchmarks(repoPath: string): string[] {
 
     console.log(
       `✅ Found ${xbenBenchmarks.length} XBEN benchmarks: ${xbenBenchmarks.join(
-        ", "
-      )}`
+        ", ",
+      )}`,
     );
 
     return xbenBenchmarks;
@@ -353,7 +353,7 @@ function enumerateXBENBenchmarks(repoPath: string): string[] {
  */
 function enumeratePACEBenchmarks(repoPath: string): string[] {
   console.log(
-    `🔍 Enumerating PACEbench FullChain challenges in ${repoPath}/docker/FullChain...`
+    `🔍 Enumerating PACEbench FullChain challenges in ${repoPath}/docker/FullChain...`,
   );
 
   const fullchainDir = path.join(repoPath, "docker", "FullChain");
@@ -375,13 +375,13 @@ function enumeratePACEBenchmarks(repoPath: string): string[] {
     console.log(
       `✅ Found ${
         fullchainBenchmarks.length
-      } FullChain challenges: ${fullchainBenchmarks.join(", ")}`
+      } FullChain challenges: ${fullchainBenchmarks.join(", ")}`,
     );
 
     return fullchainBenchmarks;
   } catch (error: any) {
     throw new Error(
-      `Failed to enumerate PACEbench challenges: ${error.message}`
+      `Failed to enumerate PACEbench challenges: ${error.message}`,
     );
   }
 }
@@ -392,7 +392,7 @@ function enumeratePACEBenchmarks(repoPath: string): string[] {
 function getBenchmarkPath(
   repoPath: string,
   benchmarkName: string,
-  isPace: boolean
+  isPace: boolean,
 ): string {
   if (isPace) {
     return path.join(repoPath, "docker", "FullChain", benchmarkName);
@@ -409,7 +409,7 @@ async function runSingleBenchmark(
   model: AIModel,
   prefix?: string,
   isPace?: boolean,
-  vulnsMode?: boolean
+  vulnsMode?: boolean,
 ): Promise<BenchmarkResults> {
   const startTime = Date.now();
 
@@ -422,13 +422,13 @@ async function runSingleBenchmark(
     console.log(
       `[${benchmarkName}] Type: ${isPace ? "PACEbench" : "XBEN"}${
         vulnsMode ? " (vulnerability mode)" : ""
-      }`
+      }`,
     );
     console.log(`${"=".repeat(80)}\n`);
 
     // Step 1: Parse docker-compose port before building and ensure ports are forwarded
     console.log(
-      `[${benchmarkName}] 🔍 Parsing docker-compose for web service...`
+      `[${benchmarkName}] 🔍 Parsing docker-compose for web service...`,
     );
     const portInfo = parseDockerComposePort(benchmarkPath);
     console.log(
@@ -436,7 +436,7 @@ async function runSingleBenchmark(
         portInfo.serviceName
       } on port ${portInfo.hostPort}${
         portInfo.needsPortMapping ? " (added port mapping)" : ""
-      }`
+      }`,
     );
 
     // Step 2: Extract flag(s) from local benchmark directory
@@ -451,7 +451,7 @@ async function runSingleBenchmark(
       expectedFlags = await extractPACEFlags(benchmarkPath, benchmarkName);
       if (expectedFlags.length > 0) {
         console.log(
-          `[${benchmarkName}] ✅ Found ${expectedFlags.length} PACE flags`
+          `[${benchmarkName}] ✅ Found ${expectedFlags.length} PACE flags`,
         );
         // Use the first flag for docker build (if needed)
         expectedFlag = expectedFlags[0]?.value || null;
@@ -465,8 +465,8 @@ async function runSingleBenchmark(
         console.log(
           `[${benchmarkName}] ✅ FLAG found: ${expectedFlag.substring(
             0,
-            20
-          )}...`
+            20,
+          )}...`,
         );
       } else {
         console.log(`[${benchmarkName}] ⚠️  FLAG not found in benchmark`);
@@ -475,7 +475,7 @@ async function runSingleBenchmark(
 
     // Step 3: Build and start docker compose
     console.log(
-      `[${benchmarkName}] 🐳 Building and starting docker compose...`
+      `[${benchmarkName}] 🐳 Building and starting docker compose...`,
     );
     await exec("docker compose up -d --build --wait", {
       cwd: benchmarkPath,
@@ -493,12 +493,12 @@ async function runSingleBenchmark(
 
     // Step 4: Query Docker to get the actual mapped host port
     console.log(
-      `[${benchmarkName}] 🔍 Querying Docker for actual port mapping...`
+      `[${benchmarkName}] 🔍 Querying Docker for actual port mapping...`,
     );
     const actualHostPort = await getActualDockerPort(
       benchmarkPath,
       portInfo.serviceName,
-      portInfo.containerPort
+      portInfo.containerPort,
     );
 
     // Step 5: Build target URL from actual mapped port
@@ -543,7 +543,7 @@ async function runSingleBenchmark(
     ];
 
     const executeCommandOverride = async (
-      opts: ExecuteCommandOpts
+      opts: ExecuteCommandOpts,
     ): Promise<ExecuteCommandResult> => {
       try {
         // Check for blocked docker commands
@@ -557,7 +557,7 @@ async function runSingleBenchmark(
               firstWord === blocked ||
               firstWord.startsWith(`${blocked} `) ||
               commandLower.includes("docker ") ||
-              commandLower.includes("docker-compose ")
+              commandLower.includes("docker-compose "),
           )
         ) {
           return {
@@ -612,7 +612,7 @@ async function runSingleBenchmark(
     // Step 8: Run streamlined pentest with tool overrides (scope constraints are in session config)
     console.log(`[${benchmarkName}] 🔍 Starting streamlined pentest...`);
     console.log(
-      `[${benchmarkName}] ℹ️  Tool overrides active: Docker commands and source code access BLOCKED`
+      `[${benchmarkName}] ℹ️  Tool overrides active: Docker commands and source code access BLOCKED`,
     );
     const pentestResult = await runStreamlinedPentest({
       target: targetUrl,
@@ -631,7 +631,7 @@ async function runSingleBenchmark(
           status.totalTasks !== undefined
         ) {
           progressParts.push(
-            `[${status.tasksCompleted}/${status.totalTasks} tasks]`
+            `[${status.tasksCompleted}/${status.totalTasks} tasks]`,
           );
         }
         if (status.activeAgents !== undefined && status.activeAgents > 0) {
@@ -643,7 +643,7 @@ async function runSingleBenchmark(
 
         if (status.findingsCount !== undefined && status.findingsCount > 0) {
           console.log(
-            `[${benchmarkName}]   Findings so far: ${status.findingsCount}`
+            `[${benchmarkName}]   Findings so far: ${status.findingsCount}`,
           );
         }
       },
@@ -651,12 +651,12 @@ async function runSingleBenchmark(
 
     if (!pentestResult.success) {
       console.log(
-        `[${benchmarkName}] ⚠️  Pentest completed with error: ${pentestResult.error}`
+        `[${benchmarkName}] ⚠️  Pentest completed with error: ${pentestResult.error}`,
       );
     }
 
     console.log(
-      `[${benchmarkName}] ✅ Pentest completed. Total findings: ${pentestResult.totalFindings}`
+      `[${benchmarkName}] ✅ Pentest completed. Total findings: ${pentestResult.totalFindings}`,
     );
 
     // Step 9: Detect flag in artifacts
@@ -667,14 +667,14 @@ async function runSingleBenchmark(
       flagDetection = await detectMultipleFlagsInArtifacts(
         session.rootPath,
         expectedFlags,
-        benchmarkName
+        benchmarkName,
       );
     } else if (expectedFlag) {
       // XBEN: Detect single flag
       flagDetection = await detectFlagInArtifacts(
         session.rootPath,
         expectedFlag,
-        benchmarkName
+        benchmarkName,
       );
     } else {
       flagDetection = {
@@ -691,7 +691,7 @@ async function runSingleBenchmark(
     const pocRunResults = await rerunAllPocs(
       session.rootPath,
       benchmarkName,
-      targetUrl
+      targetUrl,
     );
 
     // Step 11: Generate benchmark results
@@ -728,16 +728,16 @@ async function runSingleBenchmark(
     writeFileSync(reportPath, JSON.stringify(results, null, 2));
 
     console.log(
-      `\n[${benchmarkName}] 📄 Benchmark report saved to: ${reportPath}`
+      `\n[${benchmarkName}] 📄 Benchmark report saved to: ${reportPath}`,
     );
     console.log(
       `\n[${benchmarkName}] 🎯 FLAG STATUS: ${
         flagDetection.detected ? "✅ DETECTED" : "❌ NOT DETECTED"
-      }`
+      }`,
     );
     if (flagDetection.detected) {
       console.log(
-        `[${benchmarkName}]    Found in: ${flagDetection.foundIn.join(", ")}`
+        `[${benchmarkName}]    Found in: ${flagDetection.foundIn.join(", ")}`,
       );
       if (flagDetection.locations && flagDetection.locations.length > 0) {
         console.log(`[${benchmarkName}]    Exact locations:`);
@@ -749,14 +749,14 @@ async function runSingleBenchmark(
           console.log(
             `[${benchmarkName}]      ... and ${
               flagDetection.locations.length - 5
-            } more`
+            } more`,
           );
         }
       }
     }
     if (pocRunResults.total > 0) {
       console.log(
-        `\n[${benchmarkName}] 🧪 POC RESULTS: ${pocRunResults.passed}/${pocRunResults.total} passed`
+        `\n[${benchmarkName}] 🧪 POC RESULTS: ${pocRunResults.passed}/${pocRunResults.total} passed`,
       );
     }
 
@@ -767,7 +767,7 @@ async function runSingleBenchmark(
   } catch (error: any) {
     const duration = ((Date.now() - startTime) / 1000 / 60).toFixed(2);
     console.error(
-      `\n[${benchmarkName}] ❌ Failed after ${duration}m: ${error.message}`
+      `\n[${benchmarkName}] ❌ Failed after ${duration}m: ${error.message}`,
     );
 
     // Return a failure result
@@ -795,7 +795,7 @@ async function runSingleBenchmark(
       console.log(`[${benchmarkName}] ✅ Cleanup complete`);
     } catch (cleanupError: any) {
       console.error(
-        `[${benchmarkName}] ⚠️  Cleanup failed: ${cleanupError.message}`
+        `[${benchmarkName}] ⚠️  Cleanup failed: ${cleanupError.message}`,
       );
     }
   }
@@ -811,7 +811,7 @@ async function runMultipleBenchmarks(
   maxParallel: number,
   prefix?: string,
   isPace?: boolean,
-  vulnsMode?: boolean
+  vulnsMode?: boolean,
 ): Promise<BenchmarkResults[]> {
   const startTime = Date.now();
 
@@ -822,7 +822,7 @@ async function runMultipleBenchmarks(
   console.log(
     `Benchmark Type: ${isPace ? "PACEbench FullChain" : "XBEN"}${
       vulnsMode ? " (vulnerability detection mode)" : ""
-    }`
+    }`,
   );
   console.log(`Benchmarks: ${benchmarks.length}`);
   console.log(`Model: ${model}`);
@@ -837,7 +837,7 @@ async function runMultipleBenchmarks(
         const benchmarkPath = getBenchmarkPath(
           repoPath,
           benchmarkName,
-          !!isPace
+          !!isPace,
         );
         return runSingleBenchmark(
           benchmarkPath,
@@ -845,10 +845,10 @@ async function runMultipleBenchmarks(
           model,
           prefix,
           isPace,
-          vulnsMode
+          vulnsMode,
         );
-      })
-    )
+      }),
+    ),
   );
 
   const totalDuration = ((Date.now() - startTime) / 1000 / 60).toFixed(2);
@@ -858,15 +858,15 @@ async function runMultipleBenchmarks(
   // Aggregate POC results
   const totalPocs = results.reduce(
     (sum, r) => sum + (r.pocRunSummary?.total || 0),
-    0
+    0,
   );
   const passedPocs = results.reduce(
     (sum, r) => sum + (r.pocRunSummary?.passed || 0),
-    0
+    0,
   );
   const failedPocs = results.reduce(
     (sum, r) => sum + (r.pocRunSummary?.failed || 0),
-    0
+    0,
   );
 
   console.log("\n" + "=".repeat(80));
@@ -876,15 +876,15 @@ async function runMultipleBenchmarks(
   console.log(`Total Benchmarks: ${benchmarks.length}`);
   console.log(
     `Flags Detected: ${flagsDetected}/${benchmarks.length} (${Math.round(
-      (flagsDetected / benchmarks.length) * 100
-    )}%)`
+      (flagsDetected / benchmarks.length) * 100,
+    )}%)`,
   );
   console.log(`Flags Missed: ${flagsMissed}/${benchmarks.length}`);
   if (totalPocs > 0) {
     console.log(
       `POCs Passed: ${passedPocs}/${totalPocs} (${Math.round(
-        (passedPocs / totalPocs) * 100
-      )}%)`
+        (passedPocs / totalPocs) * 100,
+      )}%)`,
     );
   }
   console.log("=".repeat(80));
@@ -898,7 +898,7 @@ async function runMultipleBenchmarks(
     ".pensar",
     "benchmarks",
     "executions",
-    summaryDirName
+    summaryDirName,
   );
 
   mkdirSync(summaryDir, { recursive: true });
@@ -935,7 +935,7 @@ async function runMultipleBenchmarks(
 
   writeFileSync(
     path.join(summaryDir, "summary.json"),
-    JSON.stringify(summary, null, 2)
+    JSON.stringify(summary, null, 2),
   );
 
   // Generate markdown summary
@@ -969,7 +969,7 @@ function generateMarkdownSummary(summary: any): string {
     `- Flags Detected: ${summary.flagsDetected}/${
       summary.totalBenchmarks
     } (${Math.round(
-      (summary.flagsDetected / summary.totalBenchmarks) * 100
+      (summary.flagsDetected / summary.totalBenchmarks) * 100,
     )}%)`,
     `- Flags Missed: ${summary.flagsMissed}/${summary.totalBenchmarks}`,
   ];
@@ -980,8 +980,8 @@ function generateMarkdownSummary(summary: any): string {
       `- POCs Passed: ${summary.pocStats.passed}/${
         summary.pocStats.total
       } (${Math.round(
-        (summary.pocStats.passed / summary.pocStats.total) * 100
-      )}%)`
+        (summary.pocStats.passed / summary.pocStats.total) * 100,
+      )}%)`,
     );
   }
 
@@ -1001,7 +1001,7 @@ function generateMarkdownSummary(summary: any): string {
       lines.push(
         `- **Flag Detected**: ${flagIcon} ${
           benchmark.flagDetected ? "YES" : "NO"
-        }`
+        }`,
       );
       if (benchmark.flagDetected) {
         lines.push(`  - Expected: \`${benchmark.expectedFlag}\``);
@@ -1013,11 +1013,11 @@ function generateMarkdownSummary(summary: any): string {
       lines.push(`  - Recall: ${benchmark.metrics.recall}%`);
       if (benchmark.pocResults) {
         lines.push(
-          `- **POC Results**: ${benchmark.pocResults.passed}/${benchmark.pocResults.total} passed`
+          `- **POC Results**: ${benchmark.pocResults.passed}/${benchmark.pocResults.total} passed`,
         );
       }
       lines.push(
-        `- **Session**: [${benchmark.sessionPath}](${benchmark.sessionPath})`
+        `- **Session**: [${benchmark.sessionPath}](${benchmark.sessionPath})`,
       );
     } else {
       lines.push(`- **Error**: ${benchmark.error}`);
@@ -1034,100 +1034,100 @@ async function main() {
 
   if (args.length === 0) {
     console.error(
-      "Usage: bun run scripts/local-benchmark.ts <repo-path> [options] [XBEN-001-24 XBEN-002-24 ...]"
+      "Usage: bun run scripts/local-benchmark.ts <repo-path> [options] [XBEN-001-24 XBEN-002-24 ...]",
     );
     console.error();
     console.error("Arguments:");
     console.error(
-      "  <repo-path>          Local path to benchmark challenges repository"
+      "  <repo-path>          Local path to benchmark challenges repository",
     );
     console.error();
     console.error("Options:");
     console.error(
-      "  --model <model>              AI model to use (default: claude-sonnet-4-5)"
+      "  --model <model>              AI model to use (default: claude-sonnet-4-5)",
     );
     console.error(
-      "  --anthropic-key <key>        Anthropic API key (default: ANTHROPIC_API_KEY env)"
+      "  --anthropic-key <key>        Anthropic API key (default: ANTHROPIC_API_KEY env)",
     );
     console.error(
-      "  --openrouter-key <key>       OpenRouter API key (default: OPENROUTER_API_KEY env)"
+      "  --openrouter-key <key>       OpenRouter API key (default: OPENROUTER_API_KEY env)",
     );
     console.error(
-      "  --max-parallel <num>         Max concurrent benchmarks (default: 10)"
+      "  --max-parallel <num>         Max concurrent benchmarks (default: 10)",
     );
     console.error(
-      "  --prefix <prefix>            Prefix for benchmark session names and output directories"
+      "  --prefix <prefix>            Prefix for benchmark session names and output directories",
     );
     console.error(
-      "  --continue                   Skip benchmarks that have already been run"
+      "  --continue                   Skip benchmarks that have already been run",
     );
     console.error(
-      "  --skip <benchmarks>          Comma-separated list of benchmarks to skip (e.g., XBEN-001-24,XBEN-002-24)"
+      "  --skip <benchmarks>          Comma-separated list of benchmarks to skip (e.g., XBEN-001-24,XBEN-002-24)",
     );
     console.error(
-      "  --pace                       Run PACEbench FullChain challenges instead of XBEN"
+      "  --pace                       Run PACEbench FullChain challenges instead of XBEN",
     );
     console.error(
-      "  --vulns                      Enable vulnerability detection mode (requires --pace)"
+      "  --vulns                      Enable vulnerability detection mode (requires --pace)",
     );
     console.error(
-      "  --custom <name>              Run against a custom target (first arg is target directory)"
+      "  --custom <name>              Run against a custom target (first arg is target directory)",
     );
     console.error();
     console.error("Environment Variables:");
     console.error(
-      "  ANTHROPIC_API_KEY            Anthropic API key (or --anthropic-key)"
+      "  ANTHROPIC_API_KEY            Anthropic API key (or --anthropic-key)",
     );
     console.error(
-      "  OPENROUTER_API_KEY           OpenRouter API key (or --openrouter-key)"
+      "  OPENROUTER_API_KEY           OpenRouter API key (or --openrouter-key)",
     );
     console.error();
     console.error("Benchmark Selection:");
     console.error(
-      "  • If no benchmarks specified: Automatically runs ALL benchmarks"
+      "  • If no benchmarks specified: Automatically runs ALL benchmarks",
     );
     console.error("    - XBEN mode: /benchmarks/XBEN-*");
     console.error("    - PACE mode: /docker/FullChain/FullChain*");
     console.error(
-      "  • If benchmarks specified: Runs only those specific benchmarks"
+      "  • If benchmarks specified: Runs only those specific benchmarks",
     );
     console.error();
     console.error("Examples:");
     console.error(
-      "  # Run ALL XBEN benchmarks (auto-discovers all /benchmarks/XBEN-* directories)"
+      "  # Run ALL XBEN benchmarks (auto-discovers all /benchmarks/XBEN-* directories)",
     );
     console.error(
-      "  bun run scripts/local-benchmark.ts /path/to/xben-challenges"
+      "  bun run scripts/local-benchmark.ts /path/to/xben-challenges",
     );
     console.error();
     console.error("  # Run specific XBEN benchmark(s)");
     console.error(
-      "  bun run scripts/local-benchmark.ts /path/to/xben-challenges XBEN-001-24"
+      "  bun run scripts/local-benchmark.ts /path/to/xben-challenges XBEN-001-24",
     );
     console.error(
-      "  bun run scripts/local-benchmark.ts /path/to/xben-challenges XBEN-001-24 XBEN-002-24"
+      "  bun run scripts/local-benchmark.ts /path/to/xben-challenges XBEN-001-24 XBEN-002-24",
     );
     console.error();
     console.error("  # Run ALL PACEbench FullChain challenges");
     console.error(
-      "  bun run scripts/local-benchmark.ts /path/to/pacebench --pace"
+      "  bun run scripts/local-benchmark.ts /path/to/pacebench --pace",
     );
     console.error();
     console.error("  # Run specific PACEbench challenge(s)");
     console.error(
-      "  bun run scripts/local-benchmark.ts /path/to/pacebench --pace FullChain1 FullChain2"
+      "  bun run scripts/local-benchmark.ts /path/to/pacebench --pace FullChain1 FullChain2",
     );
     console.error();
     console.error(
-      "  # Run against a custom target directory (e.g., ~/coffee-shop)"
+      "  # Run against a custom target directory (e.g., ~/coffee-shop)",
     );
     console.error(
-      "  bun run scripts/local-benchmark.ts ~/coffee-shop --custom coffee-shop"
+      "  bun run scripts/local-benchmark.ts ~/coffee-shop --custom coffee-shop",
     );
     console.error();
     console.error("  # Run with custom model and parallel limit");
     console.error(
-      "  bun run scripts/local-benchmark.ts /path/to/xben-challenges \\"
+      "  bun run scripts/local-benchmark.ts /path/to/xben-challenges \\",
     );
     console.error("    --model claude-haiku-4-5 --max-parallel 2");
     console.error();
@@ -1135,10 +1135,10 @@ async function main() {
     console.error("  - Runs benchmarks LOCALLY (no remote sandbox)");
     console.error("  - Starts docker compose locally for each benchmark");
     console.error(
-      "  - Runs thoroughPentestAgent locally against the running application"
+      "  - Runs thoroughPentestAgent locally against the running application",
     );
     console.error(
-      "  - Docker commands and source code access are BLOCKED (anti-cheat)"
+      "  - Docker commands and source code access are BLOCKED (anti-cheat)",
     );
     console.error("  - Detects flags in pentest artifacts");
     console.error("  - Stops docker compose and cleans up");
@@ -1237,7 +1237,7 @@ async function main() {
     const skipValue = args[skipIndex + 1];
     if (!skipValue) {
       console.error(
-        "Error: --skip must be followed by a comma-separated list of benchmarks"
+        "Error: --skip must be followed by a comma-separated list of benchmarks",
       );
       process.exit(1);
     }
@@ -1326,7 +1326,7 @@ async function main() {
     if (!anthropicKey && !openrouterKey) {
       console.error("Error: At least one AI API key is required");
       console.error(
-        "Set ANTHROPIC_API_KEY or OPENROUTER_API_KEY environment variable"
+        "Set ANTHROPIC_API_KEY or OPENROUTER_API_KEY environment variable",
       );
       console.error("Or use --anthropic-key or --openrouter-key flag");
       process.exit(1);
@@ -1354,7 +1354,7 @@ async function main() {
     console.log(
       `AI Keys: ${anthropicKey ? "Anthropic ✓" : ""} ${
         openrouterKey ? "OpenRouter ✓" : ""
-      }`
+      }`,
     );
     console.log("=".repeat(80));
     console.log();
@@ -1364,7 +1364,7 @@ async function main() {
     console.log("  • Starts docker compose for target");
     console.log("  • Runs thoroughPentestAgent locally");
     console.log(
-      "  • Docker commands and source code access BLOCKED (anti-cheat)"
+      "  • Docker commands and source code access BLOCKED (anti-cheat)",
     );
     console.log("  • Detects flags in artifacts");
     console.log("  • Generates comprehensive reports");
@@ -1372,7 +1372,7 @@ async function main() {
 
     try {
       console.log(
-        `Running against custom target: ${options.custom} (${repoPath})`
+        `Running against custom target: ${options.custom} (${repoPath})`,
       );
       await runSingleBenchmark(
         repoPath,
@@ -1380,7 +1380,7 @@ async function main() {
         (options.model || "claude-sonnet-4-5") as AIModel,
         options.prefix,
         false, // isPace
-        options.vulns
+        options.vulns,
       );
       console.log("\n✅ Benchmark execution completed successfully!");
     } catch (error: any) {
@@ -1400,32 +1400,32 @@ async function main() {
   if (benchmarks.length === 0) {
     if (options.pace) {
       console.log(
-        "No benchmarks specified, enumerating all PACEbench FullChain challenges...\n"
+        "No benchmarks specified, enumerating all PACEbench FullChain challenges...\n",
       );
       targetBenchmarks = enumeratePACEBenchmarks(repoPath);
 
       if (targetBenchmarks.length === 0) {
         console.error(
-          "Error: No FullChain challenges found in /docker/FullChain directory"
+          "Error: No FullChain challenges found in /docker/FullChain directory",
         );
         console.error(
-          "Please ensure the repository has /docker/FullChain/FullChain* directories"
+          "Please ensure the repository has /docker/FullChain/FullChain* directories",
         );
         console.error("Or specify benchmarks manually as arguments");
         process.exit(1);
       }
     } else {
       console.log(
-        "No benchmarks specified, enumerating all XBEN-* benchmarks...\n"
+        "No benchmarks specified, enumerating all XBEN-* benchmarks...\n",
       );
       targetBenchmarks = enumerateXBENBenchmarks(repoPath);
 
       if (targetBenchmarks.length === 0) {
         console.error(
-          "Error: No XBEN benchmarks found in /benchmarks directory"
+          "Error: No XBEN benchmarks found in /benchmarks directory",
         );
         console.error(
-          "Please ensure the repository has /benchmarks/XBEN-* directories"
+          "Please ensure the repository has /benchmarks/XBEN-* directories",
         );
         console.error("Or specify benchmarks manually as arguments");
         process.exit(1);
@@ -1440,21 +1440,21 @@ async function main() {
   if (options.continueRun) {
     const completedBenchmarks = getCompletedBenchmarks(
       options.prefix,
-      options.pace
+      options.pace,
     );
     if (completedBenchmarks.length > 0) {
       console.log(
         `🔍 Found ${completedBenchmarks.length} already-completed benchmarks${
           options.prefix ? ` (prefix: ${options.prefix})` : ""
-        }: ${completedBenchmarks.join(", ")}`
+        }: ${completedBenchmarks.join(", ")}`,
       );
       const originalCount = targetBenchmarks.length;
       targetBenchmarks = targetBenchmarks.filter(
-        (b) => !completedBenchmarks.includes(b)
+        (b) => !completedBenchmarks.includes(b),
       );
       const skippedCount = originalCount - targetBenchmarks.length;
       console.log(
-        `⏭️  Skipping ${skippedCount} benchmarks, ${targetBenchmarks.length} remaining\n`
+        `⏭️  Skipping ${skippedCount} benchmarks, ${targetBenchmarks.length} remaining\n`,
       );
 
       if (targetBenchmarks.length === 0) {
@@ -1465,7 +1465,7 @@ async function main() {
       console.log(
         `🔍 No previously completed benchmarks found${
           options.prefix ? ` (prefix: ${options.prefix})` : ""
-        }, running all benchmarks\n`
+        }, running all benchmarks\n`,
       );
     }
   }
@@ -1474,13 +1474,13 @@ async function main() {
   if (options.skip && options.skip.length > 0) {
     const originalCount = targetBenchmarks.length;
     targetBenchmarks = targetBenchmarks.filter(
-      (b) => !options.skip!.includes(b)
+      (b) => !options.skip!.includes(b),
     );
     const skippedCount = originalCount - targetBenchmarks.length;
     console.log(
       `⏭️  Skipping ${skippedCount} benchmarks via --skip flag: ${options.skip.join(
-        ", "
-      )}`
+        ", ",
+      )}`,
     );
     console.log(`   ${targetBenchmarks.length} benchmarks remaining\n`);
 
@@ -1499,7 +1499,7 @@ async function main() {
   if (!anthropicKey && !openrouterKey) {
     console.error("Error: At least one AI API key is required");
     console.error(
-      "Set ANTHROPIC_API_KEY or OPENROUTER_API_KEY environment variable"
+      "Set ANTHROPIC_API_KEY or OPENROUTER_API_KEY environment variable",
     );
     console.error("Or use --anthropic-key or --openrouter-key flag");
     process.exit(1);
@@ -1521,7 +1521,7 @@ async function main() {
   console.log(
     `Benchmark Type: ${options.pace ? "PACEbench FullChain" : "XBEN"}${
       options.vulns ? " (vulnerability detection mode)" : ""
-    }`
+    }`,
   );
   console.log(`Benchmarks: ${targetBenchmarks.join(", ")}`);
   console.log(`Total Benchmarks: ${targetBenchmarks.length}`);
@@ -1533,7 +1533,7 @@ async function main() {
   console.log(
     `AI Keys: ${anthropicKey ? "Anthropic ✓" : ""} ${
       openrouterKey ? "OpenRouter ✓" : ""
-    }`
+    }`,
   );
   console.log("=".repeat(80));
   console.log();
@@ -1543,7 +1543,7 @@ async function main() {
   console.log("  • Starts docker compose for each benchmark");
   console.log("  • Runs thoroughPentestAgent locally");
   console.log(
-    "  • Docker commands and source code access BLOCKED (anti-cheat)"
+    "  • Docker commands and source code access BLOCKED (anti-cheat)",
   );
   console.log("  • Detects flags in artifacts");
   console.log("  • Generates comprehensive reports");
@@ -1556,7 +1556,7 @@ async function main() {
       const benchmarkPath = getBenchmarkPath(
         repoPath,
         targetBenchmarks[0]!,
-        !!options.pace
+        !!options.pace,
       );
       await runSingleBenchmark(
         benchmarkPath,
@@ -1564,12 +1564,12 @@ async function main() {
         (options.model || "claude-sonnet-4-5") as AIModel,
         options.prefix,
         options.pace,
-        options.vulns
+        options.vulns,
       );
     } else {
       // Multiple benchmarks - run in parallel
       console.log(
-        `Running parallel benchmark for ${targetBenchmarks.length} benchmarks`
+        `Running parallel benchmark for ${targetBenchmarks.length} benchmarks`,
       );
       await runMultipleBenchmarks(
         repoPath,
@@ -1578,7 +1578,7 @@ async function main() {
         options.maxParallel || 10,
         options.prefix,
         options.pace,
-        options.vulns
+        options.vulns,
       );
     }
 

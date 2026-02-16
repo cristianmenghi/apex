@@ -31,7 +31,7 @@ Call this at the END of your analysis with:
       discoveredAssets: z
         .array(z.string())
         .describe(
-          "List of discovered assets with descriptions. Format: 'example.com - Web server (nginx) - Ports 80,443'"
+          "List of discovered assets with descriptions. Format: 'example.com - Web server (nginx) - Ports 80,443'",
         ),
       targets: z
         .array(
@@ -41,7 +41,7 @@ Call this at the END of your analysis with:
             rationale: z
               .string()
               .describe("Why this target needs deep testing"),
-          })
+          }),
         )
         .describe("ALL targets for deep penetration testing"),
       keyFindings: z.preprocess(
@@ -49,19 +49,19 @@ Call this at the END of your analysis with:
         z
           .array(z.string())
           .describe(
-            "Key findings from reconnaissance. Format: '[SEVERITY] Finding description'"
-          )
+            "Key findings from reconnaissance. Format: '[SEVERITY] Finding description'",
+          ),
       ),
       toolCallDescription: z
         .string()
         .describe(
-          "A concise, human-readable description of what this tool call is doing"
+          "A concise, human-readable description of what this tool call is doing",
         ),
     }),
     execute: async (results) => {
       const resultsPath = join(
         ctx.session.rootPath,
-        "attack-surface-results.json"
+        "attack-surface-results.json",
       );
       writeFileSync(resultsPath, JSON.stringify(results, null, 2));
 

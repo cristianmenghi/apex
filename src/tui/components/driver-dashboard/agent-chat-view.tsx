@@ -97,7 +97,7 @@ export default function AgentChatView({
       setInputValue(newValue);
       setShowMentions(false);
     },
-    [inputValue]
+    [inputValue],
   );
 
   // Handle message send

@@ -120,7 +120,7 @@ function saveAgentMessages(
   sessionRootPath: string,
   agentName: string,
   messages: unknown[],
-  metadata?: Record<string, unknown>
+  metadata?: Record<string, unknown>,
 ): string {
   const subagentsDir = join(sessionRootPath, "subagents");
   if (!existsSync(subagentsDir)) {
@@ -142,8 +142,8 @@ function saveAgentMessages(
         messages,
       },
       null,
-      2
-    )
+      2,
+    ),
   );
 
   return filepath;
@@ -174,7 +174,7 @@ export interface RunAuthenticationSubagentOpts {
  * Uses cognitive loop reasoning pattern for reliable auth handling.
  */
 export async function runAuthenticationSubagent(
-  opts: RunAuthenticationSubagentOpts
+  opts: RunAuthenticationSubagentOpts,
 ): Promise<AuthenticationSubagentResult> {
   const {
     input,
@@ -218,7 +218,7 @@ export async function runAuthenticationSubagent(
     targetHost,
     (state) => {
       logger.info(`Auth state changed: ${state.status}`);
-    }
+    },
   );
 
   // Ensure evidence directory exists (for browser screenshots)
@@ -236,7 +236,7 @@ export async function runAuthenticationSubagent(
         evidenceDir,
         "auth",
         logger,
-        abortSignal
+        abortSignal,
       );
       logger.info("Browser tools enabled for auth subagent");
     } catch (error) {
@@ -297,7 +297,7 @@ Provide a clear summary of the authentication outcome.`,
         detectedBarrier = result.authBarrier;
       }
       logger.info(
-        `Authentication complete: ${result.success ? "SUCCESS" : "FAILED"}`
+        `Authentication complete: ${result.success ? "SUCCESS" : "FAILED"}`,
       );
       return { success: true, message: "Authentication process completed." };
     },
@@ -344,7 +344,7 @@ Provide a clear summary of the authentication outcome.`,
 
     try {
       logger.info(
-        `Running auth agent (attempt ${attempt}/${RETRY_CONFIG.maxRetries})`
+        `Running auth agent (attempt ${attempt}/${RETRY_CONFIG.maxRetries})`,
       );
 
       const streamResult = streamResponse({
@@ -403,7 +403,7 @@ Provide a clear summary of the authentication outcome.`,
               target,
               strategy,
               success: authStateManager.getState().status === "active",
-            }
+            },
           );
         }
       } catch (e) {
@@ -452,7 +452,7 @@ Provide a clear summary of the authentication outcome.`,
         const delay = Math.min(
           RETRY_CONFIG.initialDelayMs *
             Math.pow(RETRY_CONFIG.backoffMultiplier, attempt - 1),
-          RETRY_CONFIG.maxDelayMs
+          RETRY_CONFIG.maxDelayMs,
         );
         logger.info(`API overloaded, retrying in ${delay / 1000}s...`);
         await sleep(delay);
@@ -495,7 +495,7 @@ Provide a clear summary of the authentication outcome.`,
   authStateManager.cleanup();
 
   logger.error(
-    `Failed after ${RETRY_CONFIG.maxRetries} attempts: ${lastError}`
+    `Failed after ${RETRY_CONFIG.maxRetries} attempts: ${lastError}`,
   );
   throw new Error(`Max retries exhausted. Last error: ${lastError}`);
 }
@@ -545,7 +545,7 @@ export interface DiscoverAuthenticationOpts {
  * and does NOT attempt to authenticate. It only performs reconnaissance.
  */
 export async function discoverAuthentication(
-  opts: DiscoverAuthenticationOpts
+  opts: DiscoverAuthenticationOpts,
 ): Promise<AuthDiscoveryResult> {
   const {
     input,
@@ -581,7 +581,7 @@ export async function discoverAuthentication(
         evidenceDir,
         "auth",
         logger,
-        abortSignal
+        abortSignal,
       );
       logger.info("Browser tools enabled for auth discovery");
     } catch (error) {
@@ -641,7 +641,7 @@ Call this when you have analyzed the endpoint and determined:
       reasoning: z
         .array(z.string())
         .describe(
-          "Step-by-step reasoning chain explaining how you arrived at this conclusion"
+          "Step-by-step reasoning chain explaining how you arrived at this conclusion",
         ),
       recommendedApproach: z
         .string()
@@ -657,7 +657,7 @@ Call this when you have analyzed the endpoint and determined:
             redirectsToLogin: z.boolean().optional(),
             loginUrl: z.string().optional(),
             notes: z.string(),
-          })
+          }),
         )
         .describe("Evidence collected during discovery"),
       barriers: z
@@ -671,7 +671,7 @@ Call this when you have analyzed the endpoint and determined:
               "unknown",
             ]),
             details: z.string(),
-          })
+          }),
         )
         .optional()
         .describe("Auth barriers detected (CAPTCHA, MFA, etc.)"),
@@ -690,7 +690,7 @@ Call this when you have analyzed the endpoint and determined:
         summary: result.summary,
       };
       logger.info(
-        `Discovery complete: requiresAuth=${result.requiresAuth} authType=${result.authType} confidence=${result.confidence}%`
+        `Discovery complete: requiresAuth=${result.requiresAuth} authType=${result.authType} confidence=${result.confidence}%`,
       );
       return { success: true, message: "Auth discovery completed." };
     },
@@ -724,7 +724,7 @@ Call this when you have analyzed the endpoint and determined:
 
     try {
       logger.info(
-        `Running auth discovery (attempt ${attempt}/${RETRY_CONFIG.maxRetries})`
+        `Running auth discovery (attempt ${attempt}/${RETRY_CONFIG.maxRetries})`,
       );
 
       const streamResult = streamResponse({
@@ -781,7 +781,7 @@ Call this when you have analyzed the endpoint and determined:
               target,
               requiresAuth: discoveryResult.requiresAuth,
               authType: discoveryResult.authType,
-            }
+            },
           );
         }
       } catch (e) {
@@ -806,7 +806,7 @@ Call this when you have analyzed the endpoint and determined:
         const delay = Math.min(
           RETRY_CONFIG.initialDelayMs *
             Math.pow(RETRY_CONFIG.backoffMultiplier, attempt - 1),
-          RETRY_CONFIG.maxDelayMs
+          RETRY_CONFIG.maxDelayMs,
         );
         logger.info(`API overloaded, retrying in ${delay / 1000}s...`);
         await sleep(delay);
@@ -850,7 +850,7 @@ Call this when you have analyzed the endpoint and determined:
   authStateManager.cleanup();
 
   logger.error(
-    `Discovery failed after ${RETRY_CONFIG.maxRetries} attempts: ${lastError}`
+    `Discovery failed after ${RETRY_CONFIG.maxRetries} attempts: ${lastError}`,
   );
   throw new Error(`Max retries exhausted. Last error: ${lastError}`);
 }

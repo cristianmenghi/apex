@@ -46,7 +46,7 @@ async function runSwarmTest(options: SwarmAgentOptions) {
   ];
 
   const executeCommandOverride = async (
-    opts: ExecuteCommandOpts
+    opts: ExecuteCommandOpts,
   ): Promise<ExecuteCommandResult> => {
     try {
       // Check for blocked docker commands
@@ -60,7 +60,7 @@ async function runSwarmTest(options: SwarmAgentOptions) {
             firstWord === blocked ||
             firstWord.startsWith(`${blocked} `) ||
             commandLower.includes("docker ") ||
-            commandLower.includes("docker-compose ")
+            commandLower.includes("docker-compose "),
         )
       ) {
         return {
@@ -127,7 +127,7 @@ async function runSwarmTest(options: SwarmAgentOptions) {
         status.totalTasks !== undefined
       ) {
         progressParts.push(
-          `[${status.tasksCompleted}/${status.totalTasks} tasks]`
+          `[${status.tasksCompleted}/${status.totalTasks} tasks]`,
         );
       }
       if (status.activeAgents !== undefined && status.activeAgents > 0) {
@@ -144,7 +144,7 @@ async function runSwarmTest(options: SwarmAgentOptions) {
   });
 
   console.log(
-    `[swarm-test] swarm test results can be found at: ${session.rootPath}`
+    `[swarm-test] swarm test results can be found at: ${session.rootPath}`,
   );
 }
 
@@ -156,16 +156,16 @@ async function main() {
     console.error();
     console.error("Required:");
     console.error(
-      "  --target <url>           Target URL to authenticate against"
+      "  --target <url>           Target URL to authenticate against",
     );
     console.error("  --benchmarkPath <path>   Path to benchmark directory");
     console.error();
     console.error("Options:");
     console.error(
-      "  --model <model>          AI model (default: claude-haiku-4-5)"
+      "  --model <model>          AI model (default: claude-haiku-4-5)",
     );
     console.error(
-      "                           Options: claude-sonnet-4-5, claude-opus-4-5, claude-haiku-4-5"
+      "                           Options: claude-sonnet-4-5, claude-opus-4-5, claude-haiku-4-5",
     );
     process.exit(args.length === 0 ? 1 : 0);
   }
@@ -193,7 +193,7 @@ async function main() {
   const benchmarkPath = args[benchmarkPathIndex + 1];
   if (!benchmarkPath) {
     console.error(
-      "Error: --benchmarkPath must be followed by a directory path"
+      "Error: --benchmarkPath must be followed by a directory path",
     );
     process.exit(1);
   }

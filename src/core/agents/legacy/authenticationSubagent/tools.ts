@@ -87,13 +87,13 @@ export interface AuthToolsConfig {
 // =============================================================================
 
 async function defaultHttpRequest(
-  opts: HttpRequestOpts
+  opts: HttpRequestOpts,
 ): Promise<HttpRequestResult> {
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(
       () => controller.abort(),
-      opts.timeout || 30000
+      opts.timeout || 30000,
     );
 
     const response = await fetch(opts.url, {
@@ -152,7 +152,7 @@ async function defaultHttpRequest(
 
 function detectAuthBarrier(
   responseBody: string,
-  statusCode: number
+  statusCode: number,
 ): AuthBarrier | null {
   const bodyLower = responseBody.toLowerCase();
 
@@ -488,7 +488,7 @@ NOTE: For SPAs or JavaScript-heavy apps, use browser tools instead (browser_navi
       toolCallDescription,
     }): Promise<AuthenticateResult> => {
       logger?.info(
-        `authenticate: ${loginUrl} method=${method} hasUsername=${!!credentials.username} hasPassword=${!!credentials.password} hasApiKey=${!!credentials.apiKey}`
+        `authenticate: ${loginUrl} method=${method} hasUsername=${!!credentials.username} hasPassword=${!!credentials.password} hasApiKey=${!!credentials.apiKey}`,
       );
 
       // Check if aborted
@@ -517,7 +517,7 @@ NOTE: For SPAs or JavaScript-heavy apps, use browser tools instead (browser_navi
             }
             if (credentials.customFields) {
               for (const [key, value] of Object.entries(
-                credentials.customFields
+                credentials.customFields,
               )) {
                 params.set(key, value);
               }
@@ -545,7 +545,7 @@ NOTE: For SPAs or JavaScript-heavy apps, use browser tools instead (browser_navi
           case "basic_auth": {
             if (credentials.username && credentials.password) {
               const encoded = Buffer.from(
-                `${credentials.username}:${credentials.password}`
+                `${credentials.username}:${credentials.password}`,
               ).toString("base64");
               headers["Authorization"] = `Basic ${encoded}`;
             }
@@ -621,7 +621,7 @@ NOTE: For SPAs or JavaScript-heavy apps, use browser tools instead (browser_navi
 
         // Extract cookies from Set-Cookie headers
         const cookieTokens = extractCookiesFromHeaders(
-          response.headers as Record<string, string | string[]>
+          response.headers as Record<string, string | string[]>,
         );
         tokens.push(...cookieTokens);
 
@@ -697,8 +697,8 @@ NOTE: For SPAs or JavaScript-heavy apps, use browser tools instead (browser_navi
             method === "json_post"
               ? "POST"
               : method === "form_post"
-              ? "POST"
-              : "GET",
+                ? "POST"
+                : "GET",
           contentType: headers["Content-Type"] || "text/html",
           usernameField,
           passwordField,
@@ -796,7 +796,7 @@ Updates session validity status in auth state.`,
       providedTokens,
     }): Promise<ValidateSessionResult> => {
       logger?.info(
-        `validate_session: ${testEndpoint} expectedStatus=${expectedStatus} hasProvidedTokens=${!!providedTokens}`
+        `validate_session: ${testEndpoint} expectedStatus=${expectedStatus} hasProvidedTokens=${!!providedTokens}`,
       );
 
       if (abortSignal?.aborted) {
@@ -924,7 +924,7 @@ Updates session validity status in auth state.`,
             if (providedTokens.customHeaders) {
               // Store custom headers as tokens
               for (const [headerName, headerValue] of Object.entries(
-                providedTokens.customHeaders
+                providedTokens.customHeaders,
               )) {
                 authStateManager.addToken({
                   type: "api_key",
@@ -984,7 +984,7 @@ Automatically updates stored tokens on success.`,
       toolCallDescription,
     }): Promise<RefreshSessionResult> => {
       logger?.info(
-        `refresh_session: refreshEndpoint=${refreshEndpoint} useOriginalCredentials=${useOriginalCredentials}`
+        `refresh_session: refreshEndpoint=${refreshEndpoint} useOriginalCredentials=${useOriginalCredentials}`,
       );
 
       if (abortSignal?.aborted) {
@@ -995,7 +995,7 @@ Automatically updates stored tokens on success.`,
         // Try refresh token first
         const tokens = authStateManager.getTokens();
         const refreshToken = tokens.find(
-          (t) => t.name === "refresh_token" || t.name === "refreshToken"
+          (t) => t.name === "refresh_token" || t.name === "refreshToken",
         );
 
         if (refreshEndpoint && refreshToken) {
@@ -1145,7 +1145,7 @@ The stored credentials will be available via exportedCookies and exportedHeaders
             path: z.string().optional(),
             httpOnly: z.boolean().optional(),
             secure: z.boolean().optional(),
-          })
+          }),
         )
         .optional()
         .describe("Cookies array from browser_get_cookies"),
@@ -1153,7 +1153,7 @@ The stored credentials will be available via exportedCookies and exportedHeaders
         .string()
         .optional()
         .describe(
-          "Bearer/JWT token from localStorage or sessionStorage (e.g., from browser_evaluate extracting localStorage.getItem('token'))"
+          "Bearer/JWT token from localStorage or sessionStorage (e.g., from browser_evaluate extracting localStorage.getItem('token'))",
         ),
       accessToken: z
         .string()
@@ -1178,7 +1178,7 @@ The stored credentials will be available via exportedCookies and exportedHeaders
       logger?.info(
         `store_browser_cookies: Storing ${
           cookies?.length || 0
-        } cookies, bearer: ${!!bearerToken}`
+        } cookies, bearer: ${!!bearerToken}`,
       );
 
       try {
@@ -1515,7 +1515,7 @@ Returns discovered endpoints and recommended login approach.`,
 
       // Check for HTTP Basic Auth endpoints
       const basicAuthEndpoint = discoveredEndpoints.find((e) =>
-        e.authIndicators.includes("HTTP Basic Auth")
+        e.authIndicators.includes("HTTP Basic Auth"),
       );
 
       // Find recommended login endpoint - prefer POST endpoints with auth indicators
@@ -1526,14 +1526,14 @@ Returns discovered endpoints and recommended login approach.`,
             e.methods.includes("POST") &&
             (e.authIndicators.includes("expects body (400)") ||
               e.authIndicators.includes("invalid credentials (401)") ||
-              e.authIndicators.includes("expects credentials"))
+              e.authIndicators.includes("expects credentials")),
         ) ||
         discoveredEndpoints.find(
-          (e) => e.likelyPurpose === "login" && e.methods.includes("POST")
+          (e) => e.likelyPurpose === "login" && e.methods.includes("POST"),
         );
 
       logger?.info(
-        `probe_auth_endpoints: found ${discoveredEndpoints.length} endpoints`
+        `probe_auth_endpoints: found ${discoveredEndpoints.length} endpoints`,
       );
 
       // Build result message
@@ -1556,8 +1556,8 @@ Returns discovered endpoints and recommended login approach.`,
         recommendedMethod: basicAuthEndpoint
           ? "GET (with Basic Auth header)"
           : loginEndpoint
-          ? "POST"
-          : undefined,
+            ? "POST"
+            : undefined,
         message,
       };
     },
@@ -1783,19 +1783,19 @@ Returns whether registration is possible and what barriers exist.`,
       const message = registrationUrl
         ? canRegister
           ? `Registration available at ${registrationUrl}. Required fields: ${requiredFields.join(
-              ", "
+              ", ",
             )}${
               barriers.length > 0 ? `. Barriers: ${barriers.join(", ")}` : ""
             }`
           : `Registration endpoint found at ${registrationUrl} but blocked by: ${barriers.join(
-              ", "
+              ", ",
             )}`
         : "No registration endpoint found at common paths";
 
       logger?.info(
         `probe_registration: canRegister=${canRegister}, url=${registrationUrl}, barriers=${barriers.join(
-          ","
-        )}`
+          ",",
+        )}`,
       );
 
       return {
@@ -1837,8 +1837,8 @@ Returns the credentials if successful, or barriers if blocked.`,
     }): Promise<AttemptRegistrationResult> => {
       logger?.info(
         `attempt_registration: ${registrationUrl} fields=${Object.keys(
-          requiredFields
-        ).join(",")}`
+          requiredFields,
+        ).join(",")}`,
       );
 
       if (abortSignal?.aborted) {
@@ -1953,7 +1953,7 @@ Returns the credentials if successful, or barriers if blocked.`,
           };
 
           logger?.info(
-            `attempt_registration: SUCCESS - created account ${credentials.username}`
+            `attempt_registration: SUCCESS - created account ${credentials.username}`,
           );
 
           return {
@@ -1966,7 +1966,7 @@ Returns the credentials if successful, or barriers if blocked.`,
 
         if (barriers.length > 0) {
           logger?.info(
-            `attempt_registration: BLOCKED by ${barriers.join(", ")}`
+            `attempt_registration: BLOCKED by ${barriers.join(", ")}`,
           );
           return {
             success: false,
@@ -1987,7 +1987,7 @@ Returns the credentials if successful, or barriers if blocked.`,
           } catch {
             // Not JSON, try to find error in HTML
             const errorMatch = response.body.match(
-              /<div[^>]*class="[^"]*error[^"]*"[^>]*>([^<]+)<\/div>/i
+              /<div[^>]*class="[^"]*error[^"]*"[^>]*>([^<]+)<\/div>/i,
             );
             if (errorMatch) errorMsg = errorMatch[1];
           }

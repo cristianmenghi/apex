@@ -26,7 +26,7 @@ export function getSuggestedActions(
     target?: string;
     findingsCount?: number;
     endpointsFound?: number;
-  }
+  },
 ): ActionSuggestion[] {
   const stageDef = OPERATOR_STAGES[currentStage];
   const suggestions: ActionSuggestion[] = [];
@@ -39,9 +39,9 @@ export function getSuggestedActions(
   const completedActions = new Set(
     actionHistory
       .filter(
-        (a) => a.decision === "approved" || a.decision === "auto-approved"
+        (a) => a.decision === "approved" || a.decision === "auto-approved",
       )
-      .map((a) => a.toolName)
+      .map((a) => a.toolName),
   );
 
   // Add "advance to next stage" suggestion if we've done some work
@@ -65,7 +65,11 @@ export function getSuggestedActions(
  */
 function getStageSpecificSuggestions(
   stage: OperatorStage,
-  context?: { target?: string; findingsCount?: number; endpointsFound?: number }
+  context?: {
+    target?: string;
+    findingsCount?: number;
+    endpointsFound?: number;
+  },
 ): ActionSuggestion[] {
   const target = context?.target || "the target";
 
@@ -286,7 +290,7 @@ function getStageSpecificSuggestions(
  * Get quick action suggestions (for toolbar/shortcuts)
  */
 export function getQuickActions(
-  stage: OperatorStage
+  stage: OperatorStage,
 ): Array<{ key: string; label: string; directive: string }> {
   switch (stage) {
     case "recon":

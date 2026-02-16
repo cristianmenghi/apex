@@ -76,7 +76,7 @@ export default function DriverDashboard({ session }: DriverDashboardProps) {
   >("idle");
   const [reconMessages, setReconMessages] = useState<DisplayMessage[]>([]);
   const [focusedArea, setFocusedArea] = useState<"agents" | "endpoints">(
-    "agents"
+    "agents",
   );
   const [focusedAgentIndex, setFocusedAgentIndex] = useState(0);
   const [focusedEndpointIndex, setFocusedEndpointIndex] = useState(0);
@@ -92,7 +92,7 @@ export default function DriverDashboard({ session }: DriverDashboardProps) {
   // Get active agent
   const activeAgent = useMemo(
     () => agents.find((a) => a.id === activeAgentId) || null,
-    [agents, activeAgentId]
+    [agents, activeAgentId],
   );
 
   // Auto-start recon on mount
@@ -138,7 +138,7 @@ export default function DriverDashboard({ session }: DriverDashboardProps) {
       setNewAgentInput(newValue);
       setShowMentions(false);
     },
-    [newAgentInput]
+    [newAgentInput],
   );
 
   // Start recon agent
@@ -208,7 +208,7 @@ export default function DriverDashboard({ session }: DriverDashboardProps) {
             if (toolResults && toolResults.length > 0) {
               for (const tr of toolResults) {
                 const msgIdx = newMessages.findIndex(
-                  (m) => m.role === "tool" && m.toolCallId === tr.toolCallId
+                  (m) => m.role === "tool" && m.toolCallId === tr.toolCallId,
                 );
                 if (msgIdx !== -1) {
                   const existingMsg = newMessages[msgIdx] as DisplayMessage & {
@@ -297,8 +297,8 @@ export default function DriverDashboard({ session }: DriverDashboardProps) {
       driverAgent.on("message", (message: DisplayMessage) => {
         setAgents((prev) =>
           prev.map((a) =>
-            a.id === agentId ? { ...a, messages: [...a.messages, message] } : a
-          )
+            a.id === agentId ? { ...a, messages: [...a.messages, message] } : a,
+          ),
         );
       });
 
@@ -307,22 +307,22 @@ export default function DriverDashboard({ session }: DriverDashboardProps) {
           prev.map((a) =>
             a.id === agentId
               ? { ...a, status: status as DriverAgent["status"] }
-              : a
-          )
+              : a,
+          ),
         );
       });
 
       driverAgent.on("complete", () => {
         setAgents((prev) =>
           prev.map((a) =>
-            a.id === agentId ? { ...a, status: "completed" } : a
-          )
+            a.id === agentId ? { ...a, status: "completed" } : a,
+          ),
         );
       });
 
       driverAgent.on("error", () => {
         setAgents((prev) =>
-          prev.map((a) => (a.id === agentId ? { ...a, status: "failed" } : a))
+          prev.map((a) => (a.id === agentId ? { ...a, status: "failed" } : a)),
         );
       });
 
@@ -333,7 +333,7 @@ export default function DriverDashboard({ session }: DriverDashboardProps) {
       // Start the agent
       driverAgent.start(target).catch(console.error);
     },
-    [agents.length, session, model.id]
+    [agents.length, session, model.id],
   );
 
   // Spawn agent from endpoint
@@ -347,7 +347,7 @@ export default function DriverDashboard({ session }: DriverDashboardProps) {
 
       await spawnAgent(target);
     },
-    [spawnAgent]
+    [spawnAgent],
   );
 
   // Handle new agent creation from input
@@ -489,7 +489,7 @@ export default function DriverDashboard({ session }: DriverDashboardProps) {
       }
       if (key.name === "down") {
         setFocusedEndpointIndex((prev) =>
-          Math.min(endpoints.length - 1, prev + 1)
+          Math.min(endpoints.length - 1, prev + 1),
         );
         return;
       }
@@ -512,7 +512,7 @@ export default function DriverDashboard({ session }: DriverDashboardProps) {
       discoveredEndpoints: endpoints.length,
       duration: Math.floor((Date.now() - startTime.getTime()) / 1000),
     }),
-    [agents, endpoints, startTime]
+    [agents, endpoints, startTime],
   );
 
   // Render agent chat view
@@ -615,8 +615,8 @@ export default function DriverDashboard({ session }: DriverDashboardProps) {
             {reconStatus === "running"
               ? "Running..."
               : reconStatus === "completed"
-              ? "Complete"
-              : "Idle"}
+                ? "Complete"
+                : "Idle"}
           </text>
         </box>
       </box>

@@ -48,8 +48,10 @@ export interface DaytonaBenchmarkOptions {
   sandboxDisk?: number; // Disk in GiB for sandbox (default: 4)
 }
 
-export interface MultipleBenchmarkOptions
-  extends Omit<DaytonaBenchmarkOptions, "benchmarkPath" | "benchmarkName"> {
+export interface MultipleBenchmarkOptions extends Omit<
+  DaytonaBenchmarkOptions,
+  "benchmarkPath" | "benchmarkName"
+> {
   repoPath: string; // Local path to repo root
   benchmarks?: string[]; // Benchmark names (e.g., ["XBOW-001-24", "XBOW-002-24"])
   maxParallel?: number;
@@ -92,7 +94,7 @@ function collectFilesRecursive(
   dirPath: string,
   baseDir: string,
   files: Array<{ source: Buffer; destination: string }> = [],
-  ig?: Ignore
+  ig?: Ignore,
 ): Array<{ source: Buffer; destination: string }> {
   const entries = readdirSync(dirPath);
 
@@ -132,13 +134,13 @@ async function waitForServiceReady(
   targetUrl: string,
   benchmarkName: string,
   maxWaitMs: number = 120000, // 2 minutes default
-  pollIntervalMs: number = 3000 // 3 seconds between polls
+  pollIntervalMs: number = 3000, // 3 seconds between polls
 ): Promise<boolean> {
   const startTime = Date.now();
   let attempt = 0;
 
   console.log(
-    `[${benchmarkName}] ⏳ Waiting for service to be ready at ${targetUrl}...`
+    `[${benchmarkName}] ⏳ Waiting for service to be ready at ${targetUrl}...`,
   );
 
   while (Date.now() - startTime < maxWaitMs) {
@@ -149,7 +151,7 @@ async function waitForServiceReady(
         `curl -s -o /dev/null -w "%{http_code}" --connect-timeout 5 --max-time 10 ${targetUrl} 2>/dev/null || echo "000"`,
         undefined,
         undefined,
-        15000
+        15000,
       );
 
       const httpCode = parseInt(result.result?.trim() || "0", 10);
@@ -159,17 +161,17 @@ async function waitForServiceReady(
       if (httpCode > 0) {
         const elapsed = Math.round((Date.now() - startTime) / 1000);
         console.log(
-          `[${benchmarkName}] ✅ Service ready (HTTP ${httpCode}) after ${elapsed}s`
+          `[${benchmarkName}] ✅ Service ready (HTTP ${httpCode}) after ${elapsed}s`,
         );
         return true;
       }
 
       console.log(
-        `[${benchmarkName}] ⏳ Attempt ${attempt}: Service not ready yet (HTTP ${httpCode}), retrying...`
+        `[${benchmarkName}] ⏳ Attempt ${attempt}: Service not ready yet (HTTP ${httpCode}), retrying...`,
       );
     } catch (_error) {
       console.log(
-        `[${benchmarkName}] ⏳ Attempt ${attempt}: Connection failed, retrying...`
+        `[${benchmarkName}] ⏳ Attempt ${attempt}: Connection failed, retrying...`,
       );
     }
 
@@ -179,7 +181,7 @@ async function waitForServiceReady(
 
   const elapsed = Math.round((Date.now() - startTime) / 1000);
   console.log(
-    `[${benchmarkName}] ⚠️ Service not ready after ${elapsed}s (${attempt} attempts)`
+    `[${benchmarkName}] ⚠️ Service not ready after ${elapsed}s (${attempt} attempts)`,
   );
   return false;
 }
@@ -192,7 +194,7 @@ async function rerunAllPocsInSandbox(
   sessionPath: string,
   remoteBenchmarkPath: string,
   benchmarkName: string,
-  targetUrl: string
+  targetUrl: string,
 ): Promise<{
   total: number;
   passed: number;
@@ -205,7 +207,7 @@ async function rerunAllPocsInSandbox(
   // Check if pocs directory exists locally
   if (!existsSync(pocsDir)) {
     console.log(
-      `[${benchmarkName}] 📁 No POCs directory found, skipping POC re-run`
+      `[${benchmarkName}] 📁 No POCs directory found, skipping POC re-run`,
     );
     return { total: 0, passed: 0, failed: 0, results: [] };
   }
@@ -216,7 +218,7 @@ async function rerunAllPocsInSandbox(
   // Find all POC files
   const files = readdirSync(pocsDir);
   const pocFiles = files.filter(
-    (f) => f.endsWith(".sh") || f.endsWith(".html")
+    (f) => f.endsWith(".sh") || f.endsWith(".html"),
   );
 
   if (pocFiles.length === 0) {
@@ -225,7 +227,7 @@ async function rerunAllPocsInSandbox(
   }
 
   console.log(
-    `[${benchmarkName}] 🔄 Re-running ${pocFiles.length} POC(s) in sandbox...`
+    `[${benchmarkName}] 🔄 Re-running ${pocFiles.length} POC(s) in sandbox...`,
   );
 
   const results: PocRunResult[] = [];
@@ -284,7 +286,7 @@ Timestamp: ${new Date().toISOString()}
         `chmod +x "${remotePocPath}" && TARGET="${targetUrl}" bash "${remotePocPath}"`,
         undefined,
         undefined,
-        120000 // 2 minute timeout
+        120000, // 2 minute timeout
       );
 
       const duration = Date.now() - startTime;
@@ -302,8 +304,8 @@ Timestamp: ${new Date().toISOString()}
         passed++;
         console.log(
           `[${benchmarkName}]   ✅ ${pocFile} (${(duration / 1000).toFixed(
-            1
-          )}s)`
+            1,
+          )}s)`,
         );
       } else {
         result = {
@@ -318,7 +320,7 @@ Timestamp: ${new Date().toISOString()}
         };
         failed++;
         console.log(
-          `[${benchmarkName}]   ❌ ${pocFile} (exit code: ${result.exitCode})`
+          `[${benchmarkName}]   ❌ ${pocFile} (exit code: ${result.exitCode})`,
         );
       }
     } catch (error) {
@@ -392,7 +394,7 @@ ${
   writeFileSync(summaryPath, JSON.stringify(summary, null, 2));
 
   console.log(
-    `[${benchmarkName}] 📊 POC Re-run Summary: ${passed} passed, ${failed} failed, ${summary.skipped} skipped`
+    `[${benchmarkName}] 📊 POC Re-run Summary: ${passed} passed, ${failed} failed, ${summary.skipped} skipped`,
   );
   console.log(`[${benchmarkName}] 📁 POC logs saved to: ${logsDir}`);
 
@@ -410,7 +412,7 @@ ${
  * - Target URL is localhost (inside sandbox) for realistic testing
  */
 export async function runBenchmarkWithDaytona(
-  options: DaytonaBenchmarkOptions
+  options: DaytonaBenchmarkOptions,
 ): Promise<BenchmarkResults> {
   const { benchmarkPath, benchmarkName, model, prefix } = options;
   const apiKey = options.apiKey || process.env.DAYTONA_API_KEY;
@@ -430,13 +432,13 @@ export async function runBenchmarkWithDaytona(
 
   // Parse docker-compose port before creating sandbox
   console.log(
-    `[${benchmarkName}] 🔍 Parsing docker-compose for web service...`
+    `[${benchmarkName}] 🔍 Parsing docker-compose for web service...`,
   );
   const portInfo = parseDockerComposePort(benchmarkPath);
   console.log(
     `[${benchmarkName}] ✅ Found web service: ${portInfo.serviceName} on port ${
       portInfo.hostPort
-    }${portInfo.needsPortMapping ? " (added port mapping)" : ""}`
+    }${portInfo.needsPortMapping ? " (added port mapping)" : ""}`,
   );
 
   const daytona = new Daytona({ apiKey });
@@ -448,7 +450,7 @@ export async function runBenchmarkWithDaytona(
   try {
     // Step 1: Create sandbox with DinD support and sufficient resources
     console.log(
-      `[${benchmarkName}] 🚀 Creating Daytona sandbox with Docker-in-Docker...`
+      `[${benchmarkName}] 🚀 Creating Daytona sandbox with Docker-in-Docker...`,
     );
 
     // Create image with required tools pre-installed
@@ -460,7 +462,7 @@ export async function runBenchmarkWithDaytona(
         "tar -xzf feroxagent.tar.gz && " +
         "mv feroxagent /usr/local/bin/ && " +
         "chmod +x /usr/local/bin/feroxagent && " +
-        "rm -f feroxagent.tar.gz"
+        "rm -f feroxagent.tar.gz",
     );
 
     // Get Docker Hub credentials from options or environment
@@ -490,14 +492,14 @@ export async function runBenchmarkWithDaytona(
         },
         image: dindImage,
       },
-      { timeout: 300000 } // 5 minute timeout for sandbox creation
+      { timeout: 300000 }, // 5 minute timeout for sandbox creation
     );
 
     const cpu = options.sandboxCpu ?? 4;
     const memory = options.sandboxMemory ?? 8;
     const disk = options.sandboxDisk ?? 4;
     console.log(
-      `[${benchmarkName}] ✅ Sandbox created: ${sandbox.id} (${cpu} vCPU, ${memory}GB RAM, ${disk}GB disk)`
+      `[${benchmarkName}] ✅ Sandbox created: ${sandbox.id} (${cpu} vCPU, ${memory}GB RAM, ${disk}GB disk)`,
     );
 
     // Wait for sandbox to be ready
@@ -512,10 +514,10 @@ export async function runBenchmarkWithDaytona(
       "ps aux | grep -v grep | grep dockerd || echo 'not running'",
       undefined,
       undefined,
-      10000
+      10000,
     );
     console.log(
-      `[${benchmarkName}] 📋 Docker process check: ${psCheck.result?.trim()}`
+      `[${benchmarkName}] 📋 Docker process check: ${psCheck.result?.trim()}`,
     );
 
     // Try using the DinD entrypoint script if available, or start dockerd directly
@@ -524,14 +526,14 @@ export async function runBenchmarkWithDaytona(
       `(dockerd-entrypoint.sh dockerd --storage-driver=vfs > /var/log/dockerd.log 2>&1 &) || (dockerd --storage-driver=vfs --host=unix:///var/run/docker.sock > /var/log/dockerd.log 2>&1 &)`,
       undefined,
       undefined,
-      30000
+      30000,
     );
 
     console.log(
       `[${benchmarkName}] 📋 Start daemon result: ${startDaemonResult.result?.substring(
         0,
-        200
-      )}`
+        200,
+      )}`,
     );
 
     // Wait for Docker daemon to be ready
@@ -546,7 +548,7 @@ export async function runBenchmarkWithDaytona(
         "docker version --format '{{.Server.Version}}' 2>&1",
         undefined,
         undefined,
-        10000
+        10000,
       );
 
       // If we get a version number, daemon is ready
@@ -556,7 +558,7 @@ export async function runBenchmarkWithDaytona(
         !dockerCheckResult.result.includes("Cannot connect")
       ) {
         console.log(
-          `[${benchmarkName}] ✅ Docker daemon version: ${dockerCheckResult.result.trim()}`
+          `[${benchmarkName}] ✅ Docker daemon version: ${dockerCheckResult.result.trim()}`,
         );
         dockerReady = true;
         break;
@@ -569,24 +571,24 @@ export async function runBenchmarkWithDaytona(
           "tail -5 /var/log/dockerd.log 2>/dev/null || echo 'no logs yet'",
           undefined,
           undefined,
-          5000
+          5000,
         );
         console.log(
           `[${benchmarkName}] ⏳ Docker check (attempt ${
             attempt + 1
-          }/30): ${dockerCheckResult.result?.substring(0, 150)}`
+          }/30): ${dockerCheckResult.result?.substring(0, 150)}`,
         );
         console.log(
           `[${benchmarkName}]    Daemon log: ${logSnippet.result?.substring(
             0,
-            200
-          )}`
+            200,
+          )}`,
         );
       } else {
         console.log(
           `[${benchmarkName}] ⏳ Docker not ready, waiting... (attempt ${
             attempt + 1
-          }/30)`
+          }/30)`,
         );
       }
     }
@@ -597,10 +599,10 @@ export async function runBenchmarkWithDaytona(
         "cat /var/log/dockerd.log 2>&1 | tail -100",
         undefined,
         undefined,
-        10000
+        10000,
       );
       console.error(
-        `[${benchmarkName}] Docker daemon logs:\n${logsResult.result}`
+        `[${benchmarkName}] Docker daemon logs:\n${logsResult.result}`,
       );
 
       // Also check dmesg for kernel issues
@@ -608,12 +610,12 @@ export async function runBenchmarkWithDaytona(
         "dmesg 2>&1 | tail -20 || echo 'dmesg not available'",
         undefined,
         undefined,
-        10000
+        10000,
       );
       console.error(`[${benchmarkName}] System logs:\n${dmesgResult.result}`);
 
       throw new Error(
-        "Docker daemon failed to start in sandbox after 30 attempts"
+        "Docker daemon failed to start in sandbox after 30 attempts",
       );
     }
 
@@ -626,7 +628,7 @@ export async function runBenchmarkWithDaytona(
         `echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin`,
         undefined,
         undefined,
-        30000
+        30000,
       );
       if (loginResult.exitCode === 0) {
         console.log(`[${benchmarkName}] ✅ Docker Hub login successful`);
@@ -634,8 +636,8 @@ export async function runBenchmarkWithDaytona(
         console.log(
           `[${benchmarkName}] ⚠️  Docker Hub login failed: ${loginResult.result?.substring(
             0,
-            200
-          )}`
+            200,
+          )}`,
         );
         // Continue anyway - some images might be public
       }
@@ -647,10 +649,10 @@ export async function runBenchmarkWithDaytona(
       "docker compose version || docker-compose version",
       undefined,
       undefined,
-      30000
+      30000,
     );
     console.log(
-      `[${benchmarkName}] ✅ Docker Compose: ${composeCheck.result?.trim()}`
+      `[${benchmarkName}] ✅ Docker Compose: ${composeCheck.result?.trim()}`,
     );
 
     // Step 2: Upload benchmark directory to sandbox
@@ -666,10 +668,10 @@ export async function runBenchmarkWithDaytona(
       benchmarkPath,
       benchmarkPath,
       [],
-      ig
+      ig,
     );
     console.log(
-      `[${benchmarkName}] 📁 Found ${filesToUpload.length} files to upload (respecting .gitignore)`
+      `[${benchmarkName}] 📁 Found ${filesToUpload.length} files to upload (respecting .gitignore)`,
     );
 
     // Map to Daytona upload format with remote path prefix (use posix paths for Linux sandbox)
@@ -678,7 +680,7 @@ export async function runBenchmarkWithDaytona(
       // Convert local path separators to posix for remote paths
       destination: path.posix.join(
         remoteBenchmarkPath,
-        file.destination.replace(/\\/g, "/")
+        file.destination.replace(/\\/g, "/"),
       ),
     }));
 
@@ -691,7 +693,7 @@ export async function runBenchmarkWithDaytona(
 
     try {
       console.log(
-        `[${benchmarkName}] 📤 Uploading ${uploadFiles.length} files in ${batches.length} batch(es)...`
+        `[${benchmarkName}] 📤 Uploading ${uploadFiles.length} files in ${batches.length} batch(es)...`,
       );
 
       for (let i = 0; i < batches.length; i++) {
@@ -699,7 +701,7 @@ export async function runBenchmarkWithDaytona(
         console.log(
           `[${benchmarkName}] 📦 Batch ${i + 1}/${batches.length}: ${
             batch.length
-          } files...`
+          } files...`,
         );
         await sandbox.fs.uploadFiles(batch, 300);
 
@@ -710,7 +712,7 @@ export async function runBenchmarkWithDaytona(
       }
 
       console.log(
-        `[${benchmarkName}] ✅ Benchmark uploaded to ${remoteBenchmarkPath}`
+        `[${benchmarkName}] ✅ Benchmark uploaded to ${remoteBenchmarkPath}`,
       );
     } catch (uploadError) {
       const uploadMessage =
@@ -728,7 +730,7 @@ export async function runBenchmarkWithDaytona(
         };
         if (response) {
           console.error(
-            `[${benchmarkName}] Response status: ${response.status}`
+            `[${benchmarkName}] Response status: ${response.status}`,
           );
           console.error(`[${benchmarkName}] Response data:`, response.data);
         }
@@ -750,7 +752,7 @@ export async function runBenchmarkWithDaytona(
       expectedFlags = await extractPACEFlags(benchmarkPath, benchmarkName);
       if (expectedFlags.length > 0) {
         console.log(
-          `[${benchmarkName}] ✅ Found ${expectedFlags.length} PACE flags`
+          `[${benchmarkName}] ✅ Found ${expectedFlags.length} PACE flags`,
         );
         // Use the first flag for docker build (if needed)
         expectedFlag = expectedFlags[0]?.value || null;
@@ -764,8 +766,8 @@ export async function runBenchmarkWithDaytona(
         console.log(
           `[${benchmarkName}] ✅ FLAG found: ${expectedFlag.substring(
             0,
-            20
-          )}...`
+            20,
+          )}...`,
         );
       } else {
         console.log(`[${benchmarkName}] ⚠️  FLAG not found in benchmark`);
@@ -774,7 +776,7 @@ export async function runBenchmarkWithDaytona(
 
     // Step 4: Build docker images with flag injection using make build
     console.log(
-      `[${benchmarkName}] 🔨 Building docker images with make build...`
+      `[${benchmarkName}] 🔨 Building docker images with make build...`,
     );
 
     // Clear BuildKit cache to avoid corruption issues with VFS storage driver
@@ -783,7 +785,7 @@ export async function runBenchmarkWithDaytona(
       "docker builder prune -af 2>/dev/null || true",
       undefined,
       undefined,
-      30000
+      30000,
     );
 
     const buildResult = await sandbox.process.executeCommand(
@@ -792,13 +794,13 @@ export async function runBenchmarkWithDaytona(
       {
         FLAG: expectedFlag || "",
       },
-      300000 // 5 minute timeout for builds
+      300000, // 5 minute timeout for builds
     );
 
     if (buildResult.exitCode !== 0) {
       // Try docker compose build as fallback
       console.log(
-        `[${benchmarkName}] ⚠️  make build failed, trying docker compose build...`
+        `[${benchmarkName}] ⚠️  make build failed, trying docker compose build...`,
       );
       const composeResult = await sandbox.process.executeCommand(
         `cd ${remoteBenchmarkPath} && docker compose build`,
@@ -806,12 +808,12 @@ export async function runBenchmarkWithDaytona(
         {
           FLAG: expectedFlag || "",
         },
-        300000
+        300000,
       );
 
       if (composeResult.exitCode !== 0) {
         throw new Error(
-          `Failed to build docker images: ${composeResult.result} CODE: ${composeResult.exitCode}`
+          `Failed to build docker images: ${composeResult.result} CODE: ${composeResult.exitCode}`,
         );
       }
     }
@@ -824,12 +826,12 @@ export async function runBenchmarkWithDaytona(
       `cd ${remoteBenchmarkPath} && docker compose up -d --wait`,
       undefined,
       undefined,
-      180000 // 3 minute timeout
+      180000, // 3 minute timeout
     );
 
     if (startDockerResult.exitCode !== 0) {
       throw new Error(
-        `Failed to start docker compose: ${startDockerResult.result} CODE: ${startDockerResult.exitCode}`
+        `Failed to start docker compose: ${startDockerResult.result} CODE: ${startDockerResult.exitCode}`,
       );
     }
 
@@ -837,18 +839,18 @@ export async function runBenchmarkWithDaytona(
 
     // Step 6: Query Docker to get the actual mapped host port
     console.log(
-      `[${benchmarkName}] 🔍 Querying Docker for actual port mapping...`
+      `[${benchmarkName}] 🔍 Querying Docker for actual port mapping...`,
     );
     const portQueryResult = await sandbox.process.executeCommand(
       `cd ${remoteBenchmarkPath} && docker compose port ${portInfo.serviceName} ${portInfo.containerPort} 2>/dev/null | cut -d: -f2 || echo "${portInfo.hostPort}"`,
       undefined,
       undefined,
-      30000
+      30000,
     );
 
     const actualHostPort = parseInt(
       portQueryResult.result?.trim() || String(portInfo.hostPort),
-      10
+      10,
     );
 
     // Step 7: Build target URL from actual mapped port (localhost inside sandbox)
@@ -862,11 +864,11 @@ export async function runBenchmarkWithDaytona(
     const serviceReady = await waitForServiceReady(
       sandbox,
       targetUrl,
-      benchmarkName
+      benchmarkName,
     );
     if (!serviceReady) {
       console.log(
-        `[${benchmarkName}] ⚠️ Service may not be fully ready, proceeding anyway...`
+        `[${benchmarkName}] ⚠️ Service may not be fully ready, proceeding anyway...`,
       );
     }
 
@@ -899,7 +901,7 @@ export async function runBenchmarkWithDaytona(
         const errorLogFile = path.join(
           session.rootPath,
           "logs",
-          "benchmark-errors.jsonl"
+          "benchmark-errors.jsonl",
         );
         const entry = {
           timestamp: new Date().toISOString(),
@@ -935,7 +937,7 @@ export async function runBenchmarkWithDaytona(
     ];
 
     const executeCommandOverride = async (
-      opts: ExecuteCommandOpts
+      opts: ExecuteCommandOpts,
     ): Promise<ExecuteCommandResult> => {
       const isLongRunningCommand =
         opts.command.includes("feroxagent") ||
@@ -956,7 +958,7 @@ export async function runBenchmarkWithDaytona(
               firstWord === blocked ||
               firstWord.startsWith(`${blocked} `) ||
               commandLower.includes("docker ") ||
-              commandLower.includes("docker-compose ")
+              commandLower.includes("docker-compose "),
           )
         ) {
           return {
@@ -988,11 +990,11 @@ export async function runBenchmarkWithDaytona(
           console.log(
             `[${benchmarkName}] 🔧 Executing long-running command: ${opts.command.substring(
               0,
-              100
-            )}...`
+              100,
+            )}...`,
           );
           console.log(
-            `[${benchmarkName}]    Timeout: ${opts.timeout || 120000}ms`
+            `[${benchmarkName}]    Timeout: ${opts.timeout || 120000}ms`,
           );
         }
 
@@ -1005,9 +1007,9 @@ export async function runBenchmarkWithDaytona(
               new Error(
                 `Command timed out after ${effectiveTimeout}ms: ${opts.command.substring(
                   0,
-                  50
-                )}...`
-              )
+                  50,
+                )}...`,
+              ),
             );
           }, effectiveTimeout + 30000); // Add 30s buffer beyond the Daytona timeout
         });
@@ -1019,7 +1021,7 @@ export async function runBenchmarkWithDaytona(
               opts.command,
               undefined,
               undefined,
-              effectiveTimeout
+              effectiveTimeout,
             );
             return result;
           } catch (daytonaError) {
@@ -1027,7 +1029,7 @@ export async function runBenchmarkWithDaytona(
               `[${benchmarkName}] ❌ Daytona SDK error during command execution:`,
               daytonaError instanceof Error
                 ? daytonaError.message
-                : String(daytonaError)
+                : String(daytonaError),
             );
             throw daytonaError;
           }
@@ -1037,7 +1039,7 @@ export async function runBenchmarkWithDaytona(
 
         if (isLongRunningCommand) {
           console.log(
-            `[${benchmarkName}] ✅ Long-running command completed with exit code: ${result.exitCode}`
+            `[${benchmarkName}] ✅ Long-running command completed with exit code: ${result.exitCode}`,
           );
         }
 
@@ -1058,17 +1060,17 @@ export async function runBenchmarkWithDaytona(
         const errorStack = error instanceof Error ? error.stack : undefined;
         console.error(
           `[${benchmarkName}] ❌ executeCommandOverride error:`,
-          errorMessage
+          errorMessage,
         );
         console.error(
-          `[${benchmarkName}]    Command: ${opts.command.substring(0, 100)}...`
+          `[${benchmarkName}]    Command: ${opts.command.substring(0, 100)}...`,
         );
 
         // Log full stack trace for debugging
         if (errorStack) {
           console.error(
             `[${benchmarkName}]    Stack:`,
-            errorStack.split("\n").slice(0, 5).join("\n")
+            errorStack.split("\n").slice(0, 5).join("\n"),
           );
         }
 
@@ -1089,7 +1091,7 @@ export async function runBenchmarkWithDaytona(
     };
 
     const httpRequestOverride = async (
-      opts: HttpRequestOpts
+      opts: HttpRequestOpts,
     ): Promise<HttpRequestResult> => {
       try {
         if (!sandbox) throw new Error("Sandbox not created");
@@ -1141,7 +1143,7 @@ export async function runBenchmarkWithDaytona(
           curlCmd,
           undefined,
           undefined,
-          (opts.timeout || 10000) + 15000
+          (opts.timeout || 10000) + 15000,
         );
 
         const output = result.result || "";
@@ -1195,7 +1197,7 @@ export async function runBenchmarkWithDaytona(
           body.length > 5000
             ? `${body.substring(
                 0,
-                5000
+                5000,
               )}... \n\n (truncated) use execute_command with grep / tail to paginate the response`
             : body;
 
@@ -1215,7 +1217,7 @@ export async function runBenchmarkWithDaytona(
         const errorStack = error instanceof Error ? error.stack : undefined;
         console.error(
           `[${benchmarkName}] ❌ httpRequestOverride error:`,
-          errorMessage
+          errorMessage,
         );
 
         logError("http_request", {
@@ -1241,7 +1243,7 @@ export async function runBenchmarkWithDaytona(
     // Step 10: Run streamlined pentest with tool overrides (scope constraints are in session config)
     console.log(`[${benchmarkName}] 🔍 Starting streamlined pentest...`);
     console.log(
-      `[${benchmarkName}] ℹ️  Agent running locally with tool overrides (commands/HTTP proxied to sandbox, docker commands BLOCKED)`
+      `[${benchmarkName}] ℹ️  Agent running locally with tool overrides (commands/HTTP proxied to sandbox, docker commands BLOCKED)`,
     );
 
     let pentestResult;
@@ -1264,7 +1266,7 @@ export async function runBenchmarkWithDaytona(
             status.totalTasks !== undefined
           ) {
             progressParts.push(
-              `[${status.tasksCompleted}/${status.totalTasks} tasks]`
+              `[${status.tasksCompleted}/${status.totalTasks} tasks]`,
             );
           }
           if (status.activeAgents !== undefined && status.activeAgents > 0) {
@@ -1276,7 +1278,7 @@ export async function runBenchmarkWithDaytona(
 
           if (status.findingsCount !== undefined && status.findingsCount > 0) {
             console.log(
-              `[${benchmarkName}]   Findings so far: ${status.findingsCount}`
+              `[${benchmarkName}]   Findings so far: ${status.findingsCount}`,
             );
           }
         },
@@ -1287,7 +1289,7 @@ export async function runBenchmarkWithDaytona(
           ? pentestError.message
           : String(pentestError);
       console.error(
-        `[${benchmarkName}] ❌ Pentest threw an exception: ${pentestMessage}`
+        `[${benchmarkName}] ❌ Pentest threw an exception: ${pentestMessage}`,
       );
       logError("pentest_execution", {
         message: pentestMessage,
@@ -1299,7 +1301,7 @@ export async function runBenchmarkWithDaytona(
 
     if (!pentestResult.success) {
       console.log(
-        `[${benchmarkName}] ⚠️  Pentest completed with error: ${pentestResult.error}`
+        `[${benchmarkName}] ⚠️  Pentest completed with error: ${pentestResult.error}`,
       );
       logError("pentest_result", {
         message: pentestResult.error || "Pentest returned success=false",
@@ -1307,7 +1309,7 @@ export async function runBenchmarkWithDaytona(
     }
 
     console.log(
-      `[${benchmarkName}] ✅ Pentest completed. Total findings: ${pentestResult.totalFindings}`
+      `[${benchmarkName}] ✅ Pentest completed. Total findings: ${pentestResult.totalFindings}`,
     );
 
     // Step 12: Detect flag in artifacts
@@ -1318,14 +1320,14 @@ export async function runBenchmarkWithDaytona(
       flagDetection = await detectMultipleFlagsInArtifacts(
         session.rootPath,
         expectedFlags,
-        benchmarkName
+        benchmarkName,
       );
     } else if (expectedFlag) {
       // XBEN: Detect single flag
       flagDetection = await detectFlagInArtifacts(
         session.rootPath,
         expectedFlag,
-        benchmarkName
+        benchmarkName,
       );
     } else {
       flagDetection = {
@@ -1344,7 +1346,7 @@ export async function runBenchmarkWithDaytona(
       session.rootPath,
       remoteBenchmarkPath,
       benchmarkName,
-      targetUrl
+      targetUrl,
     );
 
     // Step 14: Generate benchmark results
@@ -1381,16 +1383,16 @@ export async function runBenchmarkWithDaytona(
     writeFileSync(reportPath, JSON.stringify(results, null, 2));
 
     console.log(
-      `\n[${benchmarkName}] 📄 Benchmark report saved to: ${reportPath}`
+      `\n[${benchmarkName}] 📄 Benchmark report saved to: ${reportPath}`,
     );
     console.log(
       `\n[${benchmarkName}] 🎯 FLAG STATUS: ${
         flagDetection.detected ? "✅ DETECTED" : "❌ NOT DETECTED"
-      }`
+      }`,
     );
     if (flagDetection.detected) {
       console.log(
-        `[${benchmarkName}]    Found in: ${flagDetection.foundIn.join(", ")}`
+        `[${benchmarkName}]    Found in: ${flagDetection.foundIn.join(", ")}`,
       );
       if (flagDetection.locations && flagDetection.locations.length > 0) {
         console.log(`[${benchmarkName}]    Exact locations:`);
@@ -1402,14 +1404,14 @@ export async function runBenchmarkWithDaytona(
           console.log(
             `[${benchmarkName}]      ... and ${
               flagDetection.locations.length - 5
-            } more`
+            } more`,
           );
         }
       }
     }
     if (pocRunResults.total > 0) {
       console.log(
-        `\n[${benchmarkName}] 🧪 POC RESULTS: ${pocRunResults.passed}/${pocRunResults.total} passed`
+        `\n[${benchmarkName}] 🧪 POC RESULTS: ${pocRunResults.passed}/${pocRunResults.total} passed`,
       );
     }
 
@@ -1422,7 +1424,7 @@ export async function runBenchmarkWithDaytona(
     const errorStack = error instanceof Error ? error.stack : undefined;
     const duration = ((Date.now() - startTime) / 1000 / 60).toFixed(2);
     console.error(
-      `\n[${benchmarkName}] ❌ Failed after ${duration}m: ${errorMessage}`
+      `\n[${benchmarkName}] ❌ Failed after ${duration}m: ${errorMessage}`,
     );
     if (errorStack) {
       console.error(`[${benchmarkName}] Stack: ${errorStack}`);
@@ -1434,7 +1436,7 @@ export async function runBenchmarkWithDaytona(
         const errorLogFile = path.join(
           sessionRootPath,
           "logs",
-          "benchmark-errors.jsonl"
+          "benchmark-errors.jsonl",
         );
         const entry = {
           timestamp: new Date().toISOString(),
@@ -1482,7 +1484,7 @@ export async function runBenchmarkWithDaytona(
               `cd ${remoteBenchmarkPath} && docker compose down`,
               undefined,
               undefined,
-              30000
+              30000,
             );
           } catch (dockerError) {
             // Don't fail cleanup if docker stop fails (might not have started)
@@ -1491,7 +1493,7 @@ export async function runBenchmarkWithDaytona(
                 dockerError instanceof Error
                   ? dockerError.message
                   : String(dockerError)
-              }`
+              }`,
             );
           }
         }
@@ -1513,7 +1515,7 @@ export async function runBenchmarkWithDaytona(
                 refreshError instanceof Error
                   ? refreshError.message
                   : String(refreshError)
-              }`
+              }`,
             );
           }
           await new Promise((resolve) => setTimeout(resolve, 3000));
@@ -1531,20 +1533,20 @@ export async function runBenchmarkWithDaytona(
               deleteError instanceof Error
                 ? deleteError.message
                 : String(deleteError)
-            }`
+            }`,
           );
           console.error(
-            `[${benchmarkName}] ⚠️  You may need to manually delete sandbox: ${sandbox.id}`
+            `[${benchmarkName}] ⚠️  You may need to manually delete sandbox: ${sandbox.id}`,
           );
         }
       } catch (error) {
         console.error(
           `[${benchmarkName}] ⚠️  Cleanup error: ${
             error instanceof Error ? error.message : String(error)
-          }`
+          }`,
         );
         console.error(
-          `[${benchmarkName}] ⚠️  Sandbox may still be running: ${sandbox.id}`
+          `[${benchmarkName}] ⚠️  Sandbox may still be running: ${sandbox.id}`,
         );
       }
     }
@@ -1632,7 +1634,7 @@ function generateMarkdownSummary(summary: BenchmarkSummaryReport): string {
       successful > 0
         ? Math.round((summary.flagsDetected / successful) * 100)
         : 0
-    }%)`
+    }%)`,
   );
   lines.push(`- Flags Missed: ${summary.flagsMissed}/${successful}`);
 
@@ -1642,8 +1644,8 @@ function generateMarkdownSummary(summary: BenchmarkSummaryReport): string {
       `- POCs Passed: ${summary.pocStats.passed}/${
         summary.pocStats.total
       } (${Math.round(
-        (summary.pocStats.passed / summary.pocStats.total) * 100
-      )}%)`
+        (summary.pocStats.passed / summary.pocStats.total) * 100,
+      )}%)`,
     );
   }
 
@@ -1663,12 +1665,12 @@ function generateMarkdownSummary(summary: BenchmarkSummaryReport): string {
       lines.push(
         `- **Flag Detected**: ${flagIcon} ${
           benchmark.flagDetected ? "YES" : "NO"
-        }`
+        }`,
       );
       if (benchmark.flagDetected) {
         lines.push(`  - Expected: \`${benchmark.expectedFlag}\``);
         lines.push(
-          `  - Found in: ${benchmark.foundIn?.join(", ") ?? "unknown"}`
+          `  - Found in: ${benchmark.foundIn?.join(", ") ?? "unknown"}`,
         );
       }
       if (benchmark.metrics) {
@@ -1679,17 +1681,17 @@ function generateMarkdownSummary(summary: BenchmarkSummaryReport): string {
       }
       if (benchmark.pocResults) {
         lines.push(
-          `- **POC Results**: ${benchmark.pocResults.passed}/${benchmark.pocResults.total} passed`
+          `- **POC Results**: ${benchmark.pocResults.passed}/${benchmark.pocResults.total} passed`,
         );
       }
       if (benchmark.sessionPath) {
         lines.push(
-          `- **Session**: [${benchmark.sessionPath}](${benchmark.sessionPath})`
+          `- **Session**: [${benchmark.sessionPath}](${benchmark.sessionPath})`,
         );
       }
     } else {
       lines.push(
-        `- **Error Category**: ${benchmark.errorCategory || "unknown"}`
+        `- **Error Category**: ${benchmark.errorCategory || "unknown"}`,
       );
       lines.push(`- **Error**: ${benchmark.error || "Unknown error"}`);
     }
@@ -1705,7 +1707,7 @@ function generateMarkdownSummary(summary: BenchmarkSummaryReport): string {
     lines.push(
       `bun run scripts/daytona-benchmark.ts ${
         summary.repoPath
-      } ${summary.failedBenchmarks.join(" ")}`
+      } ${summary.failedBenchmarks.join(" ")}`,
     );
     lines.push("```");
     lines.push("");
@@ -1783,7 +1785,7 @@ interface BenchmarkExecutionResult {
  * Uses Promise.allSettled to ensure all benchmarks complete even if some fail
  */
 export async function runMultipleBenchmarks(
-  options: MultipleBenchmarkOptions
+  options: MultipleBenchmarkOptions,
 ): Promise<BenchmarkResults[]> {
   const benchmarks = options.benchmarks || [];
 
@@ -1842,7 +1844,7 @@ export async function runMultipleBenchmarks(
           const errorMessage =
             error instanceof Error ? error.message : String(error);
           console.error(
-            `\n❌ [${benchmarkName}] FAILED (${errorCategory}): ${errorMessage}`
+            `\n❌ [${benchmarkName}] FAILED (${errorCategory}): ${errorMessage}`,
           );
           return {
             benchmarkName,
@@ -1851,8 +1853,8 @@ export async function runMultipleBenchmarks(
             errorCategory,
           };
         }
-      })
-    )
+      }),
+    ),
   );
 
   // Process settled results
@@ -1866,11 +1868,11 @@ export async function runMultipleBenchmarks(
         console.error(
           `\n❌ [${benchmarks[index]}] PROMISE REJECTED (${errorCategory}): ${
             settled.reason?.message || settled.reason
-          }`
+          }`,
         );
         if (settled.reason?.stack) {
           console.error(
-            `[${benchmarks[index]}] Stack: ${settled.reason.stack}`
+            `[${benchmarks[index]}] Stack: ${settled.reason.stack}`,
           );
         }
         return {
@@ -1880,28 +1882,28 @@ export async function runMultipleBenchmarks(
           errorCategory,
         };
       }
-    }
+    },
   );
 
   // Separate successful and failed results
   const successfulResults = executionResults.filter(
-    (r) => r.status === "success" && r.result
+    (r) => r.status === "success" && r.result,
   );
   const failedResults = executionResults.filter((r) => r.status === "failed");
   const results = successfulResults.map((r) => r.result!);
 
   // Categorize failures
   const rateLimitFailures = failedResults.filter(
-    (r) => r.errorCategory === "rate_limit"
+    (r) => r.errorCategory === "rate_limit",
   );
   const transientFailures = failedResults.filter(
-    (r) => r.errorCategory === "transient"
+    (r) => r.errorCategory === "transient",
   );
   const permanentFailures = failedResults.filter(
-    (r) => r.errorCategory === "permanent"
+    (r) => r.errorCategory === "permanent",
   );
   const unknownFailures = failedResults.filter(
-    (r) => r.errorCategory === "unknown"
+    (r) => r.errorCategory === "unknown",
   );
 
   const totalDuration = ((Date.now() - startTime) / 1000 / 60).toFixed(2);
@@ -1911,15 +1913,15 @@ export async function runMultipleBenchmarks(
   // Aggregate POC results
   const totalPocs = results.reduce(
     (sum, r) => sum + (r.pocRunSummary?.total || 0),
-    0
+    0,
   );
   const passedPocs = results.reduce(
     (sum, r) => sum + (r.pocRunSummary?.passed || 0),
-    0
+    0,
   );
   const failedPocs = results.reduce(
     (sum, r) => sum + (r.pocRunSummary?.failed || 0),
-    0
+    0,
   );
 
   console.log("\n" + "=".repeat(80));
@@ -1940,14 +1942,14 @@ export async function runMultipleBenchmarks(
       successfulResults.length > 0
         ? Math.round((flagsDetected / successfulResults.length) * 100)
         : 0
-    }%)`
+    }%)`,
   );
   console.log(`Flags Missed: ${flagsMissed}/${successfulResults.length}`);
   if (totalPocs > 0) {
     console.log(
       `POCs Passed: ${passedPocs}/${totalPocs} (${Math.round(
-        (passedPocs / totalPocs) * 100
-      )}%)`
+        (passedPocs / totalPocs) * 100,
+      )}%)`,
     );
   }
   console.log("=".repeat(80));
@@ -1959,14 +1961,14 @@ export async function runMultipleBenchmarks(
       console.log(
         `  - ${failed.benchmarkName} (${
           failed.errorCategory
-        }): ${failed.error?.substring(0, 100)}`
+        }): ${failed.error?.substring(0, 100)}`,
       );
     }
     console.log("\nTo retry failed benchmarks, run:");
     console.log(
       `  bun run scripts/daytona-benchmark.ts ${
         options.repoPath
-      } ${failedResults.map((f) => f.benchmarkName).join(" ")}`
+      } ${failedResults.map((f) => f.benchmarkName).join(" ")}`,
     );
   }
 
@@ -1979,7 +1981,7 @@ export async function runMultipleBenchmarks(
     ".pensar",
     "benchmarks",
     "executions",
-    summaryDirName
+    summaryDirName,
   );
 
   mkdirSync(summaryDir, { recursive: true });
@@ -2037,7 +2039,7 @@ export async function runMultipleBenchmarks(
 
   writeFileSync(
     path.join(summaryDir, "summary.json"),
-    JSON.stringify(summary, null, 2)
+    JSON.stringify(summary, null, 2),
   );
 
   // Generate markdown summary
@@ -2051,7 +2053,7 @@ export async function runMultipleBenchmarks(
   // This ensures durable-benchmark.sh knows to retry
   if (failedResults.length > 0) {
     console.log(
-      `\n⚠️  Exiting with code 1 due to ${failedResults.length} failed benchmark(s)`
+      `\n⚠️  Exiting with code 1 due to ${failedResults.length} failed benchmark(s)`,
     );
     process.exit(1);
   }

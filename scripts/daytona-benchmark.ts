@@ -62,7 +62,7 @@ function getCompletedBenchmarks(prefix?: string, isPace?: boolean): string[] {
   const executionsDir = path.join(
     process.env.HOME || "",
     ".pensar",
-    "executions"
+    "executions",
   );
 
   if (!existsSync(executionsDir)) {
@@ -79,13 +79,13 @@ function getCompletedBenchmarks(prefix?: string, isPace?: boolean): string[] {
     // Patterns for XBEN benchmarks
     const xbenNewPattern = new RegExp(`^${patternPrefix}-(XBEN-\\d+-\\d+)ses_`);
     const xbenLegacyPattern = new RegExp(
-      `^${patternPrefix}-(XBEN-\\d+-\\d+)-[a-z0-9]+$`
+      `^${patternPrefix}-(XBEN-\\d+-\\d+)-[a-z0-9]+$`,
     );
 
     // Patterns for PACEbench FullChain benchmarks
     const paceNewPattern = new RegExp(`^${patternPrefix}-(FullChain\\d+)ses_`);
     const paceLegacyPattern = new RegExp(
-      `^${patternPrefix}-(FullChain\\d+)-[a-z0-9]+$`
+      `^${patternPrefix}-(FullChain\\d+)-[a-z0-9]+$`,
     );
 
     for (const entry of entries) {
@@ -113,7 +113,7 @@ function getCompletedBenchmarks(prefix?: string, isPace?: boolean): string[] {
     return Array.from(completedBenchmarks);
   } catch (error: any) {
     console.warn(
-      `Warning: Failed to read executions directory: ${error.message}`
+      `Warning: Failed to read executions directory: ${error.message}`,
     );
     return [];
   }
@@ -143,8 +143,8 @@ function enumerateXBENBenchmarks(repoPath: string): string[] {
 
     console.log(
       `✅ Found ${xbenBenchmarks.length} XBEN benchmarks: ${xbenBenchmarks.join(
-        ", "
-      )}`
+        ", ",
+      )}`,
     );
 
     return xbenBenchmarks;
@@ -158,7 +158,7 @@ function enumerateXBENBenchmarks(repoPath: string): string[] {
  */
 function enumeratePACEBenchmarks(repoPath: string): string[] {
   console.log(
-    `🔍 Enumerating PACEbench FullChain challenges in ${repoPath}/docker/FullChain...`
+    `🔍 Enumerating PACEbench FullChain challenges in ${repoPath}/docker/FullChain...`,
   );
 
   const fullchainDir = path.join(repoPath, "docker", "FullChain");
@@ -180,13 +180,13 @@ function enumeratePACEBenchmarks(repoPath: string): string[] {
     console.log(
       `✅ Found ${
         fullchainBenchmarks.length
-      } FullChain challenges: ${fullchainBenchmarks.join(", ")}`
+      } FullChain challenges: ${fullchainBenchmarks.join(", ")}`,
     );
 
     return fullchainBenchmarks;
   } catch (error: any) {
     throw new Error(
-      `Failed to enumerate PACEbench challenges: ${error.message}`
+      `Failed to enumerate PACEbench challenges: ${error.message}`,
     );
   }
 }
@@ -197,7 +197,7 @@ function enumeratePACEBenchmarks(repoPath: string): string[] {
 function getBenchmarkPath(
   repoPath: string,
   benchmarkName: string,
-  isPace: boolean
+  isPace: boolean,
 ): string {
   if (isPace) {
     return path.join(repoPath, "docker", "FullChain", benchmarkName);
@@ -210,135 +210,135 @@ async function main() {
 
   if (args.length === 0) {
     console.error(
-      "Usage: bun run scripts/daytona-benchmark.ts <repo-path> [options] [XBEN-001-24 XBEN-002-24 ...]"
+      "Usage: bun run scripts/daytona-benchmark.ts <repo-path> [options] [XBEN-001-24 XBEN-002-24 ...]",
     );
     console.error();
     console.error("Arguments:");
     console.error(
-      "  <repo-path>          Local path to XBEN challenges repository"
+      "  <repo-path>          Local path to XBEN challenges repository",
     );
     console.error();
     console.error("Options:");
     console.error(
-      "  --model <model>              AI model to use (default: claude-sonnet-4-5)"
+      "  --model <model>              AI model to use (default: claude-sonnet-4-5)",
     );
     console.error(
-      "  --daytona-api-key <key>      Daytona API key (default: DAYTONA_API_KEY env)"
+      "  --daytona-api-key <key>      Daytona API key (default: DAYTONA_API_KEY env)",
     );
     console.error(
-      "  --daytona-org-id <id>        Daytona organization ID (optional, default: DAYTONA_ORG_ID env)"
+      "  --daytona-org-id <id>        Daytona organization ID (optional, default: DAYTONA_ORG_ID env)",
     );
     console.error(
-      "  --anthropic-key <key>        Anthropic API key (default: ANTHROPIC_API_KEY env)"
+      "  --anthropic-key <key>        Anthropic API key (default: ANTHROPIC_API_KEY env)",
     );
     console.error(
-      "  --openrouter-key <key>       OpenRouter API key (default: OPENROUTER_API_KEY env)"
+      "  --openrouter-key <key>       OpenRouter API key (default: OPENROUTER_API_KEY env)",
     );
     console.error(
-      "  --max-parallel <num>         Max concurrent sandboxes (default: 10)"
+      "  --max-parallel <num>         Max concurrent sandboxes (default: 10)",
     );
     console.error(
-      "  --prefix <prefix>            Prefix for benchmark session names and output directories"
+      "  --prefix <prefix>            Prefix for benchmark session names and output directories",
     );
     console.error(
-      "  --continue                   Skip benchmarks that have already been run"
+      "  --continue                   Skip benchmarks that have already been run",
     );
     console.error(
-      "  --skip <benchmarks>          Comma-separated list of benchmarks to skip (e.g., XBEN-001-24,XBEN-002-24)"
+      "  --skip <benchmarks>          Comma-separated list of benchmarks to skip (e.g., XBEN-001-24,XBEN-002-24)",
     );
     console.error(
-      "  --docker-username <user>     Docker Hub username for authenticated pulls (default: DOCKER_USERNAME env)"
+      "  --docker-username <user>     Docker Hub username for authenticated pulls (default: DOCKER_USERNAME env)",
     );
     console.error(
-      "  --docker-password <pass>     Docker Hub password/token for authenticated pulls (default: DOCKER_PASSWORD env)"
+      "  --docker-password <pass>     Docker Hub password/token for authenticated pulls (default: DOCKER_PASSWORD env)",
     );
     console.error(
-      "  --pace                       Run PACEbench FullChain challenges instead of XBEN"
+      "  --pace                       Run PACEbench FullChain challenges instead of XBEN",
     );
     console.error(
-      "  --vulns                      Enable vulnerability detection mode (requires --pace)"
+      "  --vulns                      Enable vulnerability detection mode (requires --pace)",
     );
     console.error(
-      "  --custom <name>              Run against a custom target (first arg is target directory)"
+      "  --custom <name>              Run against a custom target (first arg is target directory)",
     );
     console.error(
-      "  --sandbox-cpu <num>          vCPUs for Daytona sandbox (default: 4)"
+      "  --sandbox-cpu <num>          vCPUs for Daytona sandbox (default: 4)",
     );
     console.error(
-      "  --sandbox-memory <num>       Memory in GiB for Daytona sandbox (default: 8)"
+      "  --sandbox-memory <num>       Memory in GiB for Daytona sandbox (default: 8)",
     );
     console.error(
-      "  --sandbox-disk <num>         Disk in GiB for Daytona sandbox (default: 4)"
+      "  --sandbox-disk <num>         Disk in GiB for Daytona sandbox (default: 4)",
     );
     console.error();
     console.error("Environment Variables Required:");
     console.error("  DAYTONA_API_KEY              Daytona API key (required)");
     console.error(
-      "  ANTHROPIC_API_KEY            Anthropic API key (or --anthropic-key)"
+      "  ANTHROPIC_API_KEY            Anthropic API key (or --anthropic-key)",
     );
     console.error(
-      "  OPENROUTER_API_KEY           OpenRouter API key (or --openrouter-key)"
+      "  OPENROUTER_API_KEY           OpenRouter API key (or --openrouter-key)",
     );
     console.error();
     console.error("Environment Variables Optional:");
     console.error("  DAYTONA_ORG_ID               Daytona organization ID");
     console.error(
-      "  DOCKER_USERNAME              Docker Hub username for authenticated pulls"
+      "  DOCKER_USERNAME              Docker Hub username for authenticated pulls",
     );
     console.error(
-      "  DOCKER_PASSWORD              Docker Hub password/token for authenticated pulls"
+      "  DOCKER_PASSWORD              Docker Hub password/token for authenticated pulls",
     );
     console.error();
     console.error("Benchmark Selection:");
     console.error(
-      "  • If no benchmarks specified: Automatically runs ALL benchmarks in /benchmarks/XBEN-*"
+      "  • If no benchmarks specified: Automatically runs ALL benchmarks in /benchmarks/XBEN-*",
     );
     console.error(
-      "  • If benchmarks specified: Runs only those specific XBEN benchmarks"
+      "  • If benchmarks specified: Runs only those specific XBEN benchmarks",
     );
     console.error();
     console.error("Examples:");
     console.error(
-      "  # Run ALL XBEN benchmarks (auto-discovers all /benchmarks/XBEN-* directories)"
+      "  # Run ALL XBEN benchmarks (auto-discovers all /benchmarks/XBEN-* directories)",
     );
     console.error(
-      "  bun run scripts/daytona-benchmark.ts /path/to/xben-challenges"
+      "  bun run scripts/daytona-benchmark.ts /path/to/xben-challenges",
     );
     console.error();
     console.error("  # Run specific XBEN benchmark(s)");
     console.error(
-      "  bun run scripts/daytona-benchmark.ts /path/to/xben-challenges XBEN-001-24"
+      "  bun run scripts/daytona-benchmark.ts /path/to/xben-challenges XBEN-001-24",
     );
     console.error(
-      "  bun run scripts/daytona-benchmark.ts /path/to/xben-challenges XBEN-001-24 XBEN-002-24"
+      "  bun run scripts/daytona-benchmark.ts /path/to/xben-challenges XBEN-001-24 XBEN-002-24",
     );
     console.error();
     console.error("  # Run with custom model and parallel limit");
     console.error(
-      "  bun run scripts/daytona-benchmark.ts /path/to/xben-challenges \\"
+      "  bun run scripts/daytona-benchmark.ts /path/to/xben-challenges \\",
     );
     console.error("    --model claude-haiku-4-5 --max-parallel 2");
     console.error();
     console.error(
-      "  # Run against a custom target directory (e.g., ~/coffee-shop)"
+      "  # Run against a custom target directory (e.g., ~/coffee-shop)",
     );
     console.error(
-      "  bun run scripts/daytona-benchmark.ts ~/coffee-shop --custom coffee-shop"
+      "  bun run scripts/daytona-benchmark.ts ~/coffee-shop --custom coffee-shop",
     );
     console.error();
     console.error("How it works:");
     console.error(
-      "  - Uses Daytona Docker-in-Docker sandboxes for target isolation"
+      "  - Uses Daytona Docker-in-Docker sandboxes for target isolation",
     );
     console.error("  - Enumerates XBEN-* directories in /benchmarks");
     console.error("  - Uploads each benchmark directory to Daytona sandbox");
     console.error("  - Parses docker-compose to determine target port/URL");
     console.error("  - Runs docker compose up inside sandbox (DinD)");
     console.error(
-      "  - Agent runs locally with tool overrides for sandbox execution"
+      "  - Agent runs locally with tool overrides for sandbox execution",
     );
     console.error(
-      "  - Commands/HTTP proxied to sandbox (docker commands BLOCKED)"
+      "  - Commands/HTTP proxied to sandbox (docker commands BLOCKED)",
     );
     console.error("  - Re-runs POCs in sandbox and saves outputs");
     console.error("  - Detects flags in pentest artifacts");
@@ -347,7 +347,7 @@ async function main() {
     console.error("Differences from local-benchmark:");
     console.error("  ✓ Full isolation between benchmarks (separate sandboxes)");
     console.error(
-      "  ✓ Each benchmark runs in its own Docker-in-Docker environment"
+      "  ✓ Each benchmark runs in its own Docker-in-Docker environment",
     );
     console.error("  ✓ Can run many benchmarks in parallel safely");
     console.error("  ✗ Requires Daytona API key");
@@ -460,7 +460,7 @@ async function main() {
     const skipValue = args[skipIndex + 1];
     if (!skipValue) {
       console.error(
-        "Error: --skip must be followed by a comma-separated list of benchmarks"
+        "Error: --skip must be followed by a comma-separated list of benchmarks",
       );
       process.exit(1);
     }
@@ -484,7 +484,7 @@ async function main() {
     const dockerPasswordValue = args[dockerPasswordIndex + 1];
     if (!dockerPasswordValue) {
       console.error(
-        "Error: --docker-password must be followed by a password/token"
+        "Error: --docker-password must be followed by a password/token",
       );
       process.exit(1);
     }
@@ -634,7 +634,7 @@ async function main() {
     if (!apiKey) {
       console.error("Error: DAYTONA_API_KEY is required");
       console.error(
-        "Set it via environment variable or --daytona-api-key flag"
+        "Set it via environment variable or --daytona-api-key flag",
       );
       process.exit(1);
     }
@@ -642,7 +642,7 @@ async function main() {
     if (!anthropicKey && !openrouterKey) {
       console.error("Error: At least one AI API key is required");
       console.error(
-        "Set ANTHROPIC_API_KEY or OPENROUTER_API_KEY environment variable"
+        "Set ANTHROPIC_API_KEY or OPENROUTER_API_KEY environment variable",
       );
       console.error("Or use --anthropic-key or --openrouter-key flag");
       process.exit(1);
@@ -665,19 +665,19 @@ async function main() {
     console.log(
       `AI Keys: ${anthropicKey ? "Anthropic ✓" : ""} ${
         openrouterKey ? "OpenRouter ✓" : ""
-      }`
+      }`,
     );
     console.log(
       `Docker Hub: ${
         dockerUsername
           ? `${dockerUsername} ✓`
           : "Not configured (may hit rate limits)"
-      }`
+      }`,
     );
     console.log(
       `Sandbox Resources: ${options.sandboxCpu ?? 4} vCPU, ${
         options.sandboxMemory ?? 8
-      }GB RAM, ${options.sandboxDisk ?? 4}GB disk`
+      }GB RAM, ${options.sandboxDisk ?? 4}GB disk`,
     );
     console.log("=".repeat(80));
     console.log();
@@ -694,7 +694,7 @@ async function main() {
 
     try {
       console.log(
-        `Running against custom target: ${options.custom} (${repoPath})`
+        `Running against custom target: ${options.custom} (${repoPath})`,
       );
       await runBenchmarkWithDaytona({
         benchmarkPath: repoPath,
@@ -731,32 +731,32 @@ async function main() {
   if (benchmarks.length === 0) {
     if (options.pace) {
       console.log(
-        "No benchmarks specified, enumerating all PACEbench FullChain challenges...\n"
+        "No benchmarks specified, enumerating all PACEbench FullChain challenges...\n",
       );
       targetBenchmarks = enumeratePACEBenchmarks(repoPath);
 
       if (targetBenchmarks.length === 0) {
         console.error(
-          "Error: No FullChain challenges found in /docker/FullChain directory"
+          "Error: No FullChain challenges found in /docker/FullChain directory",
         );
         console.error(
-          "Please ensure the repository has /docker/FullChain/FullChain* directories"
+          "Please ensure the repository has /docker/FullChain/FullChain* directories",
         );
         console.error("Or specify benchmarks manually as arguments");
         process.exit(1);
       }
     } else {
       console.log(
-        "No benchmarks specified, enumerating all XBEN-* benchmarks...\n"
+        "No benchmarks specified, enumerating all XBEN-* benchmarks...\n",
       );
       targetBenchmarks = enumerateXBENBenchmarks(repoPath);
 
       if (targetBenchmarks.length === 0) {
         console.error(
-          "Error: No XBEN benchmarks found in /benchmarks directory"
+          "Error: No XBEN benchmarks found in /benchmarks directory",
         );
         console.error(
-          "Please ensure the repository has /benchmarks/XBEN-* directories"
+          "Please ensure the repository has /benchmarks/XBEN-* directories",
         );
         console.error("Or specify benchmarks manually as arguments");
         process.exit(1);
@@ -771,21 +771,21 @@ async function main() {
   if (options.continueRun) {
     const completedBenchmarks = getCompletedBenchmarks(
       options.prefix,
-      options.pace
+      options.pace,
     );
     if (completedBenchmarks.length > 0) {
       console.log(
         `🔍 Found ${completedBenchmarks.length} already-completed benchmarks${
           options.prefix ? ` (prefix: ${options.prefix})` : ""
-        }: ${completedBenchmarks.join(", ")}`
+        }: ${completedBenchmarks.join(", ")}`,
       );
       const originalCount = targetBenchmarks.length;
       targetBenchmarks = targetBenchmarks.filter(
-        (b) => !completedBenchmarks.includes(b)
+        (b) => !completedBenchmarks.includes(b),
       );
       const skippedCount = originalCount - targetBenchmarks.length;
       console.log(
-        `⏭️  Skipping ${skippedCount} benchmarks, ${targetBenchmarks.length} remaining\n`
+        `⏭️  Skipping ${skippedCount} benchmarks, ${targetBenchmarks.length} remaining\n`,
       );
 
       if (targetBenchmarks.length === 0) {
@@ -796,7 +796,7 @@ async function main() {
       console.log(
         `🔍 No previously completed benchmarks found${
           options.prefix ? ` (prefix: ${options.prefix})` : ""
-        }, running all benchmarks\n`
+        }, running all benchmarks\n`,
       );
     }
   }
@@ -805,13 +805,13 @@ async function main() {
   if (options.skip && options.skip.length > 0) {
     const originalCount = targetBenchmarks.length;
     targetBenchmarks = targetBenchmarks.filter(
-      (b) => !options.skip!.includes(b)
+      (b) => !options.skip!.includes(b),
     );
     const skippedCount = originalCount - targetBenchmarks.length;
     console.log(
       `⏭️  Skipping ${skippedCount} benchmarks via --skip flag: ${options.skip.join(
-        ", "
-      )}`
+        ", ",
+      )}`,
     );
     console.log(`   ${targetBenchmarks.length} benchmarks remaining\n`);
 
@@ -840,7 +840,7 @@ async function main() {
   if (!anthropicKey && !openrouterKey) {
     console.error("Error: At least one AI API key is required");
     console.error(
-      "Set ANTHROPIC_API_KEY or OPENROUTER_API_KEY environment variable"
+      "Set ANTHROPIC_API_KEY or OPENROUTER_API_KEY environment variable",
     );
     console.error("Or use --anthropic-key or --openrouter-key flag");
     process.exit(1);
@@ -854,7 +854,7 @@ async function main() {
   console.log(
     `Benchmark Type: ${options.pace ? "PACEbench FullChain" : "XBEN"}${
       options.vulns ? " (vulnerability detection mode)" : ""
-    }`
+    }`,
   );
   console.log(`Benchmarks: ${targetBenchmarks.join(", ")}`);
   console.log(`Total Benchmarks: ${targetBenchmarks.length}`);
@@ -869,19 +869,19 @@ async function main() {
   console.log(
     `AI Keys: ${anthropicKey ? "Anthropic ✓" : ""} ${
       openrouterKey ? "OpenRouter ✓" : ""
-    }`
+    }`,
   );
   console.log(
     `Docker Hub: ${
       dockerUsername
         ? `${dockerUsername} ✓`
         : "Not configured (may hit rate limits)"
-    }`
+    }`,
   );
   console.log(
     `Sandbox Resources: ${options.sandboxCpu ?? 4} vCPU, ${
       options.sandboxMemory ?? 8
-    }GB RAM, ${options.sandboxDisk ?? 4}GB disk`
+    }GB RAM, ${options.sandboxDisk ?? 4}GB disk`,
   );
   console.log("=".repeat(80));
   console.log();
@@ -905,7 +905,7 @@ async function main() {
       const benchmarkPath = getBenchmarkPath(
         repoPath,
         targetBenchmarks[0]!,
-        !!options.pace
+        !!options.pace,
       );
       await runBenchmarkWithDaytona({
         benchmarkPath,
@@ -927,7 +927,7 @@ async function main() {
     } else {
       // Multiple benchmarks - run in parallel
       console.log(
-        `Running parallel benchmark for ${targetBenchmarks.length} benchmarks`
+        `Running parallel benchmark for ${targetBenchmarks.length} benchmarks`,
       );
       await runMultipleBenchmarks({
         repoPath,

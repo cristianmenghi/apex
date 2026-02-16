@@ -66,7 +66,7 @@ async function runAuth(options: AuthOptions): Promise<void> {
   console.log(`Model: ${model}`);
   console.log(`Browser Tools: ${noBrowser ? "Disabled" : "Enabled"}`);
   console.log(
-    `Mode: ${discoverOnly ? "Discovery Only" : "Full Authentication"}`
+    `Mode: ${discoverOnly ? "Discovery Only" : "Full Authentication"}`,
   );
 
   if (username) console.log(`Username: ${username}`);
@@ -126,7 +126,7 @@ async function runAuth(options: AuthOptions): Promise<void> {
               };
               const desc = tc.args?.toolCallDescription;
               console.log(
-                `\n[Tool Call] ${tc.toolName}${desc ? `: ${desc}` : ""}`
+                `\n[Tool Call] ${tc.toolName}${desc ? `: ${desc}` : ""}`,
               );
             }
           }
@@ -150,7 +150,7 @@ async function runAuth(options: AuthOptions): Promise<void> {
       console.log();
 
       console.log(
-        `Authentication Required: ${result.requiresAuth ? "YES" : "NO"}`
+        `Authentication Required: ${result.requiresAuth ? "YES" : "NO"}`,
       );
       console.log(`Auth Type: ${result.authType}`);
       console.log(`Confidence: ${result.confidence}%`);
@@ -190,7 +190,7 @@ async function runAuth(options: AuthOptions): Promise<void> {
         console.log("Auth Barriers Detected:");
         result.barriers.forEach((barrier, i) => {
           console.log(
-            `  ${i + 1}. [${barrier.type.toUpperCase()}] ${barrier.details}`
+            `  ${i + 1}. [${barrier.type.toUpperCase()}] ${barrier.details}`,
           );
         });
         console.log();
@@ -236,7 +236,7 @@ async function runAuth(options: AuthOptions): Promise<void> {
 
     if (!hasCredentials) {
       console.log(
-        "No credentials provided. Will discover auth requirements and probe for registration."
+        "No credentials provided. Will discover auth requirements and probe for registration.",
       );
       console.log();
     }
@@ -264,7 +264,7 @@ async function runAuth(options: AuthOptions): Promise<void> {
             };
             const desc = tc.args?.toolCallDescription;
             console.log(
-              `\n[Tool Call] ${tc.toolName}${desc ? `: ${desc}` : ""}`
+              `\n[Tool Call] ${tc.toolName}${desc ? `: ${desc}` : ""}`,
             );
           }
         }
@@ -300,7 +300,7 @@ async function runAuth(options: AuthOptions): Promise<void> {
       console.log("Exported Headers:");
       for (const [name, value] of Object.entries(result.exportedHeaders)) {
         console.log(
-          `  ${name}: ${value.slice(0, 50)}${value.length > 50 ? "..." : ""}`
+          `  ${name}: ${value.slice(0, 50)}${value.length > 50 ? "..." : ""}`,
         );
       }
       console.log();
@@ -311,7 +311,7 @@ async function runAuth(options: AuthOptions): Promise<void> {
       console.log(
         `  ${result.exportedCookies.slice(0, 100)}${
           result.exportedCookies.length > 100 ? "..." : ""
-        }`
+        }`,
       );
       console.log();
     }
@@ -342,8 +342,8 @@ async function runAuth(options: AuthOptions): Promise<void> {
             expiresAt: result.authState.expiresAt,
           },
           null,
-          2
-        )
+          2,
+        ),
       );
       console.log(`Tokens saved to: ${tokensPath}`);
     }
@@ -363,8 +363,8 @@ async function runAuth(options: AuthOptions): Promise<void> {
           documentedAt: new Date().toISOString(),
         },
         null,
-        2
-      )
+        2,
+      ),
     );
     console.log(`Auth flow documented at: ${authFlowPath}`);
 
@@ -400,7 +400,7 @@ async function main() {
     console.error();
     console.error("Required:");
     console.error(
-      "  --target <url>           Target URL to authenticate against"
+      "  --target <url>           Target URL to authenticate against",
     );
     console.error();
     console.error("Credentials (optional):");
@@ -410,43 +410,43 @@ async function main() {
     console.error("  --bearer <token>         Bearer token to verify");
     console.error("  --cookies <string>       Cookies to verify");
     console.error(
-      '  --headers <json>         Custom headers as JSON (e.g., \'{"X-API-Key":"abc"}\')'
+      '  --headers <json>         Custom headers as JSON (e.g., \'{"X-API-Key":"abc"}\')',
     );
     console.error();
     console.error("Options:");
     console.error(
-      "  --model <model>          AI model (default: claude-sonnet-4-5)"
+      "  --model <model>          AI model (default: claude-sonnet-4-5)",
     );
     console.error(
-      "                           Options: claude-sonnet-4-5, claude-opus-4, claude-haiku-4"
+      "                           Options: claude-sonnet-4-5, claude-opus-4, claude-haiku-4",
     );
     console.error(
-      "  --endpoints <urls>       Comma-separated protected endpoints to test tokens against"
+      "  --endpoints <urls>       Comma-separated protected endpoints to test tokens against",
     );
     console.error("  --no-browser             Disable browser tools");
     console.error(
-      "  --discover-only          Only discover auth requirements, don't authenticate"
+      "  --discover-only          Only discover auth requirements, don't authenticate",
     );
     console.error();
     console.error("Examples:");
     console.error("  # Discovery only (no credentials)");
     console.error(
-      "  tsx scripts/auth.ts --target https://example.com/api --discover-only"
+      "  tsx scripts/auth.ts --target https://example.com/api --discover-only",
     );
     console.error();
     console.error("  # With username/password");
     console.error(
-      '  tsx scripts/auth.ts --target https://example.com --username admin --password "secret"'
+      '  tsx scripts/auth.ts --target https://example.com --username admin --password "secret"',
     );
     console.error();
     console.error("  # Verify a bearer token");
     console.error(
-      '  tsx scripts/auth.ts --target https://example.com/api --bearer "eyJ..."'
+      '  tsx scripts/auth.ts --target https://example.com/api --bearer "eyJ..."',
     );
     console.error();
     console.error("  # Verify cookies");
     console.error(
-      '  tsx scripts/auth.ts --target https://example.com --cookies "session=abc123"'
+      '  tsx scripts/auth.ts --target https://example.com --cookies "session=abc123"',
     );
     console.error();
     console.error("  # No credentials (probes for registration)");
@@ -454,12 +454,12 @@ async function main() {
     console.error();
     console.error("  # With custom headers (API key, etc.)");
     console.error(
-      '  tsx scripts/auth.ts --target https://api.example.com --headers \'{"X-API-Key":"abc123"}\''
+      '  tsx scripts/auth.ts --target https://api.example.com --headers \'{"X-API-Key":"abc123"}\'',
     );
     console.error();
     console.error("  # With protected endpoints for token verification");
     console.error(
-      '  tsx scripts/auth.ts --target https://api.example.com --bearer "token" --endpoints "/api/data,/api/users"'
+      '  tsx scripts/auth.ts --target https://api.example.com --bearer "token" --endpoints "/api/data,/api/users"',
     );
     console.error();
     process.exit(args.length === 0 ? 1 : 0);
@@ -555,7 +555,7 @@ async function main() {
       headers = JSON.parse(headersArg);
     } catch {
       console.error(
-        'Error: --headers must be valid JSON (e.g., \'{"X-API-Key":"abc123"}\')'
+        'Error: --headers must be valid JSON (e.g., \'{"X-API-Key":"abc123"}\')',
       );
       process.exit(1);
     }
@@ -566,7 +566,7 @@ async function main() {
     const endpointsArg = args[endpointsIndex + 1];
     if (!endpointsArg) {
       console.error(
-        "Error: --endpoints must be followed by comma-separated URLs"
+        "Error: --endpoints must be followed by comma-separated URLs",
       );
       process.exit(1);
     }

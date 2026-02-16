@@ -34,7 +34,7 @@ The report is written to the session directory as pentest-report.md.`,
       toolCallDescription: z
         .string()
         .describe(
-          "A concise, human-readable description of what this tool call is doing"
+          "A concise, human-readable description of what this tool call is doing",
         ),
     }),
     execute: async (params) => {

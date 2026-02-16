@@ -220,7 +220,7 @@ export class DriverModeAgent extends EventEmitter {
           if (toolResults && toolResults.length > 0) {
             for (const tr of toolResults) {
               const msgIdx = this.messages.findIndex(
-                (m) => m.role === "tool" && m.toolCallId === tr.toolCallId
+                (m) => m.role === "tool" && m.toolCallId === tr.toolCallId,
               );
               if (msgIdx !== -1) {
                 const existingMsg = this.messages[msgIdx] as DisplayMessage & {
@@ -279,7 +279,7 @@ export class DriverModeAgent extends EventEmitter {
         this.setStatus("failed");
         this.emit(
           "error",
-          error instanceof Error ? error : new Error(String(error))
+          error instanceof Error ? error : new Error(String(error)),
         );
       }
     }
@@ -357,7 +357,7 @@ export class DriverModeAgent extends EventEmitter {
  * Create a new driver mode agent
  */
 export function createDriverModeAgent(
-  config: DriverModeAgentConfig
+  config: DriverModeAgentConfig,
 ): DriverModeAgent {
   return new DriverModeAgent(config);
 }

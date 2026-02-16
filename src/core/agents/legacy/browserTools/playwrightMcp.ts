@@ -81,13 +81,13 @@ const BrowserClickInput = z.object({
   element: z
     .string()
     .describe(
-      "Description of element to click, e.g., 'Submit button' or 'Login link'"
+      "Description of element to click, e.g., 'Submit button' or 'Login link'",
     ),
   ref: z
     .string()
     .optional()
     .describe(
-      "Element reference from browser_snapshot (e.g., 'e5'). If provided, uses exact element reference for precise clicking."
+      "Element reference from browser_snapshot (e.g., 'e5'). If provided, uses exact element reference for precise clicking.",
     ),
   toolCallDescription: z.string().describe("Why you are clicking this element"),
 });
@@ -96,13 +96,13 @@ const BrowserFillInput = z.object({
   element: z
     .string()
     .describe(
-      "Description of form field, e.g., 'Username field' or 'Search input'"
+      "Description of form field, e.g., 'Username field' or 'Search input'",
     ),
   ref: z
     .string()
     .optional()
     .describe(
-      "Element reference from browser_snapshot (e.g., 'e3'). If provided, uses exact element reference for precise filling."
+      "Element reference from browser_snapshot (e.g., 'e3'). If provided, uses exact element reference for precise filling.",
     ),
   value: z.string().describe("Value to fill into the field"),
   toolCallDescription: z
@@ -134,7 +134,7 @@ const BrowserGetCookiesInput = z.object({
     .array(z.string())
     .optional()
     .describe(
-      "Optional list of URLs to get cookies for. If not provided, gets all cookies."
+      "Optional list of URLs to get cookies for. If not provided, gets all cookies.",
     ),
   toolCallDescription: z
     .string()
@@ -250,7 +250,7 @@ export function isClientConnected(): boolean {
  */
 async function callMcpTool(
   toolName: string,
-  args: Record<string, unknown>
+  args: Record<string, unknown>,
 ): Promise<unknown> {
   const client = await initializeMcpClient();
   const result = await client.callTool({
@@ -262,7 +262,7 @@ async function callMcpTool(
   if (result && "content" in result && Array.isArray(result.content)) {
     // Check for image content first (screenshots)
     const imageContent = result.content.find(
-      (c: { type: string }) => c.type === "image"
+      (c: { type: string }) => c.type === "image",
     );
     if (imageContent && "data" in imageContent) {
       return { type: "image", data: imageContent.data };
@@ -270,7 +270,7 @@ async function callMcpTool(
 
     // Then check for text content
     const textContent = result.content.find(
-      (c: { type: string }) => c.type === "text"
+      (c: { type: string }) => c.type === "text",
     );
     if (textContent && "text" in textContent) {
       try {
@@ -476,7 +476,7 @@ export function createBrowserTools(
   evidenceDir: string,
   mode: BrowserToolMode = "pentest",
   logger?: Logger,
-  abortSignal?: AbortSignal
+  abortSignal?: AbortSignal,
 ) {
   // Setup abort handler for cleanup
   abortSignal?.addEventListener("abort", () => {
@@ -492,8 +492,8 @@ export function createBrowserTools(
     mode === "pentest"
       ? PENTEST_DESCRIPTIONS
       : mode === "auth"
-      ? AUTH_DESCRIPTIONS
-      : OPERATOR_DESCRIPTIONS;
+        ? AUTH_DESCRIPTIONS
+        : OPERATOR_DESCRIPTIONS;
 
   const browser_navigate = tool({
     description: `${descriptions.navigate}\n\nTarget base URL: ${targetUrl}`,
@@ -538,7 +538,7 @@ export function createBrowserTools(
           }
           writeFileSync(
             screenshotPath,
-            Buffer.from((result as { data: string }).data, "base64")
+            Buffer.from((result as { data: string }).data, "base64"),
           );
           return {
             success: true,

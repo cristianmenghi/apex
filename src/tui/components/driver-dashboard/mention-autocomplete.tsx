@@ -40,7 +40,7 @@ export default function MentionAutocomplete({
         (e) =>
           e.id.toLowerCase().includes(lowerQuery) ||
           e.url.toLowerCase().includes(lowerQuery) ||
-          e.suggestedObjective.toLowerCase().includes(lowerQuery)
+          e.suggestedObjective.toLowerCase().includes(lowerQuery),
       )
       .slice(0, 5);
   }, [endpoints, query]);
@@ -59,7 +59,7 @@ export default function MentionAutocomplete({
 
     if (key.name === "down") {
       setSelectedIndex((prev) =>
-        Math.min(filteredEndpoints.length - 1, prev + 1)
+        Math.min(filteredEndpoints.length - 1, prev + 1),
       );
       return;
     }

@@ -27,7 +27,7 @@ function mergeAuthCredentials(
       sessionToken?: string;
       customHeaders?: Record<string, string>;
     };
-  }
+  },
 ): AuthCredentials | undefined {
   const hasExplicit =
     explicit.username ||
@@ -127,12 +127,12 @@ When to use delegate_to_auth_subagent vs authenticate_session:
             .record(z.string(), z.string())
             .optional()
             .describe(
-              "Custom headers to verify (e.g., X-API-Key, X-Auth-Token)"
+              "Custom headers to verify (e.g., X-API-Key, X-Auth-Token)",
             ),
         })
         .optional()
         .describe(
-          "Pre-existing tokens to verify (skips login flow, just validates these work)"
+          "Pre-existing tokens to verify (skips login flow, just validates these work)",
         ),
       authHints: z
         .object({
@@ -152,7 +152,7 @@ When to use delegate_to_auth_subagent vs authenticate_session:
             .array(z.string())
             .optional()
             .describe(
-              "Protected endpoints discovered during recon that require auth"
+              "Protected endpoints discovered during recon that require auth",
             ),
         })
         .optional()
@@ -192,7 +192,7 @@ When to use delegate_to_auth_subagent vs authenticate_session:
         if (tokens?.cookies) console.log(`   Cookies: [PROVIDED]`);
         if (tokens?.customHeaders)
           console.log(
-            `   Custom Headers: ${Object.keys(tokens.customHeaders).join(", ")}`
+            `   Custom Headers: ${Object.keys(tokens.customHeaders).join(", ")}`,
           );
 
         const sessionCreds = ctx.session.config?.authCredentials;
@@ -209,8 +209,8 @@ When to use delegate_to_auth_subagent vs authenticate_session:
           if (sessionCreds.tokens?.customHeaders)
             console.log(
               `   Session Custom Headers: ${Object.keys(
-                sessionCreds.tokens.customHeaders
-              ).join(", ")}`
+                sessionCreds.tokens.customHeaders,
+              ).join(", ")}`,
             );
         }
 
@@ -218,13 +218,13 @@ When to use delegate_to_auth_subagent vs authenticate_session:
           console.log(`   Auth Scheme: ${authHints.authScheme || "unknown"}`);
           console.log(`   CSRF Required: ${authHints.csrfRequired || false}`);
           console.log(
-            `   Browser Required: ${authHints.browserRequired || false}`
+            `   Browser Required: ${authHints.browserRequired || false}`,
           );
           if (authHints.protectedEndpoints?.length) {
             console.log(
               `   Protected Endpoints: ${authHints.protectedEndpoints.join(
-                ", "
-              )}`
+                ", ",
+              )}`,
             );
           }
         }
@@ -258,7 +258,7 @@ When to use delegate_to_auth_subagent vs authenticate_session:
         if (result.success) {
           const sessionInfoPath = join(
             ctx.session.rootPath,
-            "session-info.json"
+            "session-info.json",
           );
           const sessionInfo = {
             authenticated: true,
