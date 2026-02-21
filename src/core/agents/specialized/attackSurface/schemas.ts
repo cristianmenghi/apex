@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { severityPreprocess } from "../../../schemas/severity";
 
 /**
  * Shared schemas for attack surface agent tools.
@@ -82,18 +83,9 @@ export const DocumentAssetSchema = z.object({
       return val;
     }, AssetDetailsSchema)
     .describe("Additional details about the asset"),
-  riskLevel: z
-    .preprocess((val) => {
-      if (typeof val === "string") {
-        const upper = val.toUpperCase();
-        if (upper.includes("CRITICAL")) return "CRITICAL";
-        if (upper.includes("HIGH")) return "HIGH";
-        if (upper.includes("MEDIUM")) return "MEDIUM";
-        if (upper.includes("LOW")) return "LOW";
-      }
-      return val;
-    }, RiskLevelEnum)
-    .describe("Risk level: LOW-CRITICAL (exposed/sensitive)"),
+  riskLevel: severityPreprocess.describe(
+    "Risk level: LOW-CRITICAL (exposed/sensitive)",
+  ),
   notes: z
     .string()
     .optional()

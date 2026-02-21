@@ -4,6 +4,7 @@ import { join } from "path";
 import { writeFileSync, mkdirSync, existsSync } from "fs";
 import type { ToolContext } from "./types";
 import type { DocumentedAssetRecord } from "../../specialized/attackSurface/schemas";
+import { severityPreprocess } from "../../../schemas/severity";
 
 /**
  * Factory for the `document_asset` tool.
@@ -95,21 +96,9 @@ Each asset creates a JSON file in the assets directory for tracking and analysis
           }),
         )
         .describe("Additional details about the asset"),
-      riskLevel: z
-        .preprocess(
-          (val) => {
-            if (typeof val === "string") {
-              const upper = val.toUpperCase();
-              if (upper.includes("CRITICAL")) return "CRITICAL";
-              if (upper.includes("HIGH")) return "HIGH";
-              if (upper.includes("MEDIUM")) return "MEDIUM";
-              if (upper.includes("LOW")) return "LOW";
-            }
-            return val;
-          },
-          z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]),
-        )
-        .describe("Risk level: LOW-CRITICAL (exposed/sensitive)"),
+      riskLevel: severityPreprocess.describe(
+        "Risk level: LOW-CRITICAL (exposed/sensitive)",
+      ),
       notes: z
         .string()
         .optional()
