@@ -3,6 +3,7 @@ import { z } from "zod";
 import { join } from "path";
 import { writeFileSync, appendFileSync } from "fs";
 import type { ToolContext } from "./types";
+import { sanitizeFilename } from "../../../utils/filename";
 
 export const documentFindingInputSchema = z.object({
   title: z.string().describe("Finding title"),
@@ -57,11 +58,7 @@ FINDING STRUCTURE:
         };
 
         // Safe filename from title
-        const safeTitle = finding.title
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, "-")
-          .replace(/^-|-$/g, "")
-          .substring(0, 50);
+        const safeTitle = sanitizeFilename(finding.title);
 
         const findingId = `${timestamp.split("T")[0]}-${safeTitle}`;
         const jsonFilename = `${findingId}.json`;

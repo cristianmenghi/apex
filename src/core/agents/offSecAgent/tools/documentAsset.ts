@@ -4,6 +4,7 @@ import { join } from "path";
 import { writeFileSync, mkdirSync, existsSync } from "fs";
 import type { ToolContext } from "./types";
 import type { DocumentedAssetRecord } from "../../specialized/attackSurface/schemas";
+import { sanitizeFilename } from "../../../utils/filename";
 
 /**
  * Factory for the `document_asset` tool.
@@ -126,9 +127,9 @@ Each asset creates a JSON file in the assets directory for tracking and analysis
         mkdirSync(assetsPath, { recursive: true });
       }
 
-      const sanitizedName = asset.assetName
-        .toLowerCase()
-        .replace(/[^a-z0-9-_.]/g, "_");
+      const sanitizedName = sanitizeFilename(asset.assetName, {
+        separator: "_",
+      });
       const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
       const filename = `asset_${sanitizedName}_${timestamp}.json`;
       const filepath = join(assetsPath, filename);

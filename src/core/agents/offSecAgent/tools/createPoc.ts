@@ -10,17 +10,9 @@ import {
   mkdirSync,
 } from "fs";
 import type { ToolContext } from "./types";
+import { sanitizeFilename } from "../../../utils/filename";
 
 const MAX_POC_ATTEMPTS = 3;
-
-function sanitizeFilename(str: string): string {
-  return str
-    .toLowerCase()
-    .replace(/[^a-z0-9_-]/g, "_")
-    .replace(/_+/g, "_")
-    .replace(/^_|_$/g, "")
-    .substring(0, 50);
-}
 
 export const createPocInputSchema = z.object({
   pocName: z.string().describe("Short descriptive name for the POC"),
@@ -95,7 +87,9 @@ Max ${MAX_POC_ATTEMPTS} attempts per approach before pivoting.`,
             : poc.pocType === "python"
               ? ".py"
               : ".js";
-        const sanitizedName = sanitizeFilename(poc.pocName);
+        const sanitizedName = sanitizeFilename(poc.pocName, {
+          separator: "_",
+        });
         const filename = `poc_${sanitizedName}${extension}`;
         const pocPath = join(pocsPath, filename);
 
