@@ -21,6 +21,12 @@ import {
   getProviderModel,
   type AIAuthConfig,
 } from "./utils";
+import {
+  createSyntheticStepResult,
+  extractChunkError,
+  getStreamProperty,
+  isErrorChunk,
+} from "./type-guards";
 
 export type AIModel = AnthropicMessagesModelId | OpenAIChatModelId | string; // For OpenRouter and Bedrock models
 
@@ -51,12 +57,8 @@ function wrapStreamWithErrorHandler(
             try {
               for await (const chunk of originalStream.fullStream) {
                 // Check if this chunk contains an error
-                if (chunk.type === "error" || "error" in chunk) {
-                  const error =
-                    "error" in chunk
-                      ? (chunk as unknown as { error: unknown }).error
-                      : chunk;
-                  throw error;
+                if (isErrorChunk(chunk) || "error" in chunk) {
+                  throw extractChunkError(chunk);
                 }
 
                 yield chunk;
@@ -112,9 +114,7 @@ function wrapStreamWithErrorHandler(
       }
 
       // For all other properties, return the original
-      return (originalStream as unknown as Record<string | symbol, unknown>)[
-        prop
-      ];
+      return getStreamProperty(originalStream, prop);
     },
   };
 
@@ -261,34 +261,25 @@ export function streamResponse(
 
           // Report tool repair token usage if onStepFinish callback is provided
           if (onStepFinish && repairUsage) {
-            onStepFinish({
-              text: "",
-              reasoning: undefined,
-              reasoningDetails: [],
-              files: [],
-              sources: [],
-              toolCalls: [],
-              toolResults: [],
-              finishReason: "stop",
-              usage: {
-                inputTokens: repairUsage.inputTokens ?? 0,
-                outputTokens: repairUsage.outputTokens ?? 0,
-                totalTokens: repairUsage.totalTokens ?? 0,
-              },
-              warnings: [],
-              request: {},
-              response: {
-                id: "tool-repair",
-                timestamp: new Date(),
-                modelId: "",
-                messages: [],
-              },
-              providerMetadata: undefined,
-              stepType: "initial",
-              isContinued: false,
-            } as unknown as Parameters<
-              StreamTextOnStepFinishCallback<ToolSet>
-            >[0]);
+            onStepFinish(
+              createSyntheticStepResult({
+                usage: {
+                  inputTokens: repairUsage.inputTokens ?? 0,
+                  outputTokens: repairUsage.outputTokens ?? 0,
+                  totalTokens: repairUsage.totalTokens ?? 0,
+                  inputTokenDetails: {
+                    noCacheTokens: undefined,
+                    cacheReadTokens: undefined,
+                    cacheWriteTokens: undefined,
+                  },
+                  outputTokenDetails: {
+                    textTokens: undefined,
+                    reasoningTokens: undefined,
+                  },
+                },
+                responseId: "tool-repair",
+              }),
+            );
           }
 
           // Return the tool call with stringified repaired arguments

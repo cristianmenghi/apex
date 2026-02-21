@@ -12,6 +12,12 @@ import {
   type TextStreamPart,
   type ToolSet,
 } from "ai";
+import {
+  createDelegatedStreamResult,
+  createSyntheticStepResult,
+  createSyntheticToolCallPart,
+  createSyntheticToolResultPart,
+} from "./type-guards";
 
 export type AIAuthConfig = {
   openAiAPIKey?: string;
@@ -185,32 +191,25 @@ export async function summarizeConversation(
   // Report summarization token usage if onStepFinish callback is provided
   // This ensures summarization tokens are tracked even though it's not a "step"
   if (opts.onStepFinish && summaryUsage) {
-    // Create a minimal step finish event for the summarization
-    opts.onStepFinish({
-      text: "",
-      reasoning: undefined,
-      reasoningDetails: [],
-      files: [],
-      sources: [],
-      toolCalls: [],
-      toolResults: [],
-      finishReason: "stop",
-      usage: {
-        inputTokens: summaryUsage.inputTokens ?? 0,
-        outputTokens: summaryUsage.outputTokens ?? 0,
-        totalTokens: summaryUsage.totalTokens ?? 0,
-      },
-      warnings: [],
-      request: {},
-      response: {
-        id: "summarization",
-        timestamp: new Date(),
-        modelId: "",
-      },
-      providerMetadata: undefined,
-      stepType: "initial",
-      isContinued: false,
-    } as unknown as Parameters<NonNullable<typeof opts.onStepFinish>>[0]);
+    opts.onStepFinish(
+      createSyntheticStepResult({
+        usage: {
+          inputTokens: summaryUsage.inputTokens ?? 0,
+          outputTokens: summaryUsage.outputTokens ?? 0,
+          totalTokens: summaryUsage.totalTokens ?? 0,
+          inputTokenDetails: {
+            noCacheTokens: undefined,
+            cacheReadTokens: undefined,
+            cacheWriteTokens: undefined,
+          },
+          outputTokenDetails: {
+            textTokens: undefined,
+            reasoningTokens: undefined,
+          },
+        },
+        responseId: "summarization",
+      }),
+    );
   }
 
   // For very long prompts, replace with just the summary instead of appending
@@ -272,36 +271,31 @@ export function createSummarizationStream(
   const resumedStreamPromise: Promise<StreamTextResult<ToolSet, never>> =
     summarizeConversation(messages, opts, model);
 
+  const summarizationInput = JSON.stringify({
+    reason: "Context length exceeded, summarizing conversation to continue",
+    messageCount: messages.length,
+  });
+
   // Create a custom async generator that wraps the resumed stream
   const wrappedFullStream = (async function* () {
     // First, emit a synthetic tool-call event
-    const toolCallEvent = {
-      type: "tool-call" as const,
+    yield createSyntheticToolCallPart({
       toolCallId,
       toolName: "summarize_conversation",
-      input: JSON.stringify({
-        reason: "Context length exceeded, summarizing conversation to continue",
-        messageCount: messages.length,
-      }),
-    } as unknown as TextStreamPart<ToolSet>;
-    yield toolCallEvent;
+      input: summarizationInput,
+    });
 
     // Wait for the summarization to complete
     const resumedStream = await resumedStreamPromise;
 
     // Emit a synthetic tool-result event
-    const toolResultEvent = {
-      type: "tool-result" as const,
+    yield createSyntheticToolResultPart({
       toolCallId,
       toolName: "summarize_conversation",
-      input: JSON.stringify({
-        reason: "Context length exceeded, summarizing conversation to continue",
-        messageCount: messages.length,
-      }),
+      input: summarizationInput,
       result:
         "Conversation summarized successfully. Resuming with condensed context...",
-    } as unknown as TextStreamPart<ToolSet>;
-    yield toolResultEvent;
+    });
 
     // Now yield all events from the resumed stream
     // Note: resumedStream is already wrapped with error handling by streamResponse,
@@ -313,42 +307,7 @@ export function createSummarizationStream(
 
   // Return a minimal StreamTextResult-like object with the wrapped stream
   // We delegate most properties to the resumed stream once it's available
-  return {
-    fullStream: wrappedFullStream,
-    text: resumedStreamPromise.then((s) => s.text),
-    content: resumedStreamPromise.then((s) => s.content),
-    reasoning: resumedStreamPromise.then((s) => s.reasoning),
-    reasoningText: resumedStreamPromise.then((s) => s.reasoningText),
-    toolCalls: resumedStreamPromise.then((s) => s.toolCalls),
-    toolResults: resumedStreamPromise.then((s) => s.toolResults),
-    usage: resumedStreamPromise.then((s) => s.usage),
-    finishReason: resumedStreamPromise.then((s) => s.finishReason),
-    warnings: resumedStreamPromise.then((s) => s.warnings),
-    response: resumedStreamPromise.then((s) => s.response),
-    files: resumedStreamPromise.then((s) => s.files),
-    sources: resumedStreamPromise.then((s) => s.sources),
-    staticToolCalls: resumedStreamPromise.then((s) => s.staticToolCalls),
-    dynamicToolCalls: resumedStreamPromise.then((s) => s.dynamicToolCalls),
-    pipeTextStreamToResponse: async (response: unknown, init?: unknown) => {
-      const stream = await resumedStreamPromise;
-      return stream.pipeTextStreamToResponse(
-        response as Parameters<
-          StreamTextResult<ToolSet, never>["pipeTextStreamToResponse"]
-        >[0],
-        init as Parameters<
-          StreamTextResult<ToolSet, never>["pipeTextStreamToResponse"]
-        >[1],
-      );
-    },
-    toDataStream: (_options?: unknown) => {
-      throw new Error("toDataStream not supported on summarization stream");
-    },
-    toDataStreamResponse: (_options?: unknown) => {
-      throw new Error(
-        "toDataStreamResponse not supported on summarization stream",
-      );
-    },
-  } as unknown as StreamTextResult<ToolSet, never>;
+  return createDelegatedStreamResult(wrappedFullStream, resumedStreamPromise);
 }
 
 export async function consumeStream(
