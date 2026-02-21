@@ -1,6 +1,6 @@
 import { tool } from "ai";
 import { z } from "zod";
-import { spawn } from "child_process";
+import { spawnWithAbort } from "../../../utils/process";
 import type { ToolContext } from "./types";
 
 export const executeCommandInputSchema = z.object({
@@ -59,7 +59,16 @@ IMPORTANT: Always analyze results and adjust your approach based on findings.`,
       command,
       timeout = 30000,
     }): Promise<ExecuteCommandResult> => {
-      if (ctx.abortSignal?.aborted) {
+      const shellCmd = process.platform === "win32" ? "cmd" : "bash";
+      const shellArgs =
+        process.platform === "win32" ? ["/c", command] : ["-lc", command];
+
+      const result = await spawnWithAbort(shellCmd, shellArgs, {
+        timeout,
+        abortSignal: ctx.abortSignal,
+      });
+
+      if (result.killed && result.exitCode === null && result.stdout === "") {
         return {
           success: false,
           error: "Command aborted by user",
@@ -69,75 +78,19 @@ IMPORTANT: Always analyze results and adjust your approach based on findings.`,
         };
       }
 
-      return new Promise((resolve) => {
-        const shellCmd = process.platform === "win32" ? "cmd" : "bash";
-        const shellArgs =
-          process.platform === "win32" ? ["/c", command] : ["-lc", command];
-
-        const child = spawn(shellCmd, shellArgs, {
-          stdio: ["ignore", "pipe", "pipe"],
-        });
-
-        let stdout = "";
-        let stderr = "";
-        let killed = false;
-
-        const timeoutTimer = setTimeout(() => {
-          killed = true;
-          child.kill("SIGTERM");
-        }, timeout);
-
-        child.stdout.on("data", (data) => {
-          stdout += data.toString();
-        });
-
-        child.stderr.on("data", (data) => {
-          stderr += data.toString();
-        });
-
-        child.on("close", (code) => {
-          clearTimeout(timeoutTimer);
-          resolve({
-            success: code === 0 && !killed,
-            stdout:
-              stdout.length > 50000
-                ? `${stdout.substring(0, 50000)}...\n\n(truncated) call the command again with grep / tail to paginate`
-                : stdout || "(no output)",
-            stderr: stderr || "",
-            command,
-            error: killed
-              ? "Command timed out"
-              : code !== 0
-                ? `Exit code: ${code}`
-                : "",
-          });
-        });
-
-        child.on("error", (err) => {
-          clearTimeout(timeoutTimer);
-          resolve({
-            success: false,
-            error: err.message,
-            stdout,
-            stderr,
-            command,
-          });
-        });
-
-        // Wire up abort signal
-        if (ctx.abortSignal) {
-          const abortHandler = () => {
-            killed = true;
-            child.kill("SIGTERM");
-          };
-          ctx.abortSignal.addEventListener("abort", abortHandler, {
-            once: true,
-          });
-          child.on("close", () => {
-            ctx.abortSignal!.removeEventListener("abort", abortHandler);
-          });
-        }
-      });
+      return {
+        success: result.exitCode === 0 && !result.killed,
+        stdout: result.truncated
+          ? `${result.stdout}...\n\n(truncated) call the command again with grep / tail to paginate`
+          : result.stdout || "(no output)",
+        stderr: result.stderr || "",
+        command,
+        error: result.killed
+          ? "Command timed out"
+          : result.exitCode !== 0
+            ? `Exit code: ${result.exitCode}`
+            : "",
+      };
     },
   });
 }

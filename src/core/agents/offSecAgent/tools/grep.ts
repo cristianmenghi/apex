@@ -1,6 +1,6 @@
 import { tool } from "ai";
 import { z } from "zod";
-import { spawn } from "child_process";
+import { spawnWithAbort } from "../../../utils/process";
 import type { ToolContext } from "./types";
 
 export const grepInputSchema = z.object({
@@ -55,16 +55,6 @@ Output is capped at 50 000 characters to avoid context overflow — narrow your
 search with flags or a more specific directory if results are truncated.`,
     inputSchema: grepInputSchema,
     execute: async ({ pattern, directory, flags }): Promise<GrepResult> => {
-      if (ctx.abortSignal?.aborted) {
-        return {
-          success: false,
-          error: "Grep aborted by user",
-          output: "",
-          matchCount: 0,
-          command: "",
-        };
-      }
-
       const dir = directory || ".";
       const userFlags = flags ? flags.trim().split(/\s+/) : [];
 
@@ -77,69 +67,41 @@ search with flags or a more specific directory if results are truncated.`,
       const args = [...defaultFlags, ...userFlags, "--", pattern, dir];
       const command = `grep ${args.join(" ")}`;
 
-      return new Promise((resolve) => {
-        const child = spawn("grep", args, {
-          stdio: ["ignore", "pipe", "pipe"],
-        });
-
-        let stdout = "";
-        let stderr = "";
-
-        const timeout = setTimeout(() => {
-          child.kill("SIGTERM");
-        }, 30_000);
-
-        child.stdout.on("data", (data) => {
-          stdout += data.toString();
-        });
-
-        child.stderr.on("data", (data) => {
-          stderr += data.toString();
-        });
-
-        child.on("close", (code) => {
-          clearTimeout(timeout);
-
-          // grep exits 1 when no matches — that's not an error
-          const noMatch = code === 1 && stderr === "";
-          const matchCount = stdout ? stdout.trimEnd().split("\n").length : 0;
-
-          const truncated = stdout.length > 50_000;
-          const output = truncated
-            ? `${stdout.substring(0, 50_000)}\n\n(truncated — narrow your search)`
-            : stdout || "(no matches)";
-
-          resolve({
-            success: code === 0 || noMatch,
-            error: noMatch || code === 0 ? "" : stderr || `Exit code: ${code}`,
-            output,
-            matchCount,
-            command,
-          });
-        });
-
-        child.on("error", (err) => {
-          clearTimeout(timeout);
-          resolve({
-            success: false,
-            error: err.message,
-            output: "",
-            matchCount: 0,
-            command,
-          });
-        });
-
-        // Wire up abort signal
-        if (ctx.abortSignal) {
-          const abortHandler = () => child.kill("SIGTERM");
-          ctx.abortSignal.addEventListener("abort", abortHandler, {
-            once: true,
-          });
-          child.on("close", () => {
-            ctx.abortSignal!.removeEventListener("abort", abortHandler);
-          });
-        }
+      const result = await spawnWithAbort("grep", args, {
+        timeout: 30_000,
+        abortSignal: ctx.abortSignal,
       });
+
+      if (result.killed && result.exitCode === null && result.stdout === "") {
+        return {
+          success: false,
+          error: "Grep aborted by user",
+          output: "",
+          matchCount: 0,
+          command: "",
+        };
+      }
+
+      // grep exits 1 when no matches — that's not an error
+      const noMatch = result.exitCode === 1 && result.stderr === "";
+      const matchCount = result.stdout
+        ? result.stdout.trimEnd().split("\n").length
+        : 0;
+
+      const output = result.truncated
+        ? `${result.stdout}\n\n(truncated — narrow your search)`
+        : result.stdout || "(no matches)";
+
+      return {
+        success: result.exitCode === 0 || noMatch,
+        error:
+          noMatch || result.exitCode === 0
+            ? ""
+            : result.stderr || `Exit code: ${result.exitCode}`,
+        output,
+        matchCount,
+        command,
+      };
     },
   });
 }
