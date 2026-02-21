@@ -10,8 +10,9 @@ import {
   mkdirSync,
 } from "fs";
 import type { ToolContext } from "./types";
+import { TOOL_DEFAULTS } from "./defaults";
 
-const MAX_POC_ATTEMPTS = 3;
+const MAX_POC_ATTEMPTS = TOOL_DEFAULTS.limits.maxPocAttempts;
 
 function sanitizeFilename(str: string): string {
   return str
@@ -134,7 +135,7 @@ Max ${MAX_POC_ATTEMPTS} attempts per approach before pivoting.`,
         const { stdout, stderr, exitCode } = await runScript(
           runner,
           pocPath,
-          60000,
+          TOOL_DEFAULTS.timeouts.pocExecution,
           ctx.abortSignal,
         );
 

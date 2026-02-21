@@ -1,6 +1,7 @@
 import { tool } from "ai";
 import { z } from "zod";
 import type { ToolContext } from "./types";
+import { TOOL_DEFAULTS } from "./defaults";
 
 export const httpRequestInputSchema = z.object({
   url: z.string().describe("The URL to request"),
@@ -26,7 +27,7 @@ export const httpRequestInputSchema = z.object({
     .describe(
       "Whether to follow HTTP redirects (3xx). Defaults to false so you can see redirect responses with Location and Set-Cookie headers.",
     ),
-  timeout: z.number().default(10000),
+  timeout: z.number().default(TOOL_DEFAULTS.timeouts.http),
   toolCallDescription: z
     .string()
     .describe(
@@ -129,8 +130,8 @@ COMMON TESTING PATTERNS:
           statusText: response.statusText,
           headers: responseHeaders,
           body:
-            responseBody.length > 5000
-              ? `${responseBody.substring(0, 5000)}...\n\n(truncated) use execute_command with grep / tail to paginate the response`
+            responseBody.length > TOOL_DEFAULTS.truncation.httpResponseBody
+              ? `${responseBody.substring(0, TOOL_DEFAULTS.truncation.httpResponseBody)}...\n\n(truncated) use execute_command with grep / tail to paginate the response`
               : responseBody,
           url: response.url,
           redirected: response.redirected,

@@ -2,6 +2,7 @@ import { tool } from "ai";
 import { z } from "zod";
 import { readFile as fsReadFile } from "fs/promises";
 import type { ToolContext } from "./types";
+import { TOOL_DEFAULTS } from "./defaults";
 
 export const readFileInputSchema = z.object({
   path: z.string().describe("Absolute or relative path to the file to read"),
@@ -56,8 +57,8 @@ Output lines are prefixed with their line number for easy reference.`,
           .join("\n");
 
         const content =
-          numbered.length > 100_000
-            ? `${numbered.substring(0, 100_000)}\n\n(truncated — use startLine/endLine to paginate)`
+          numbered.length > TOOL_DEFAULTS.truncation.fileContent
+            ? `${numbered.substring(0, TOOL_DEFAULTS.truncation.fileContent)}\n\n(truncated — use startLine/endLine to paginate)`
             : numbered;
 
         return {

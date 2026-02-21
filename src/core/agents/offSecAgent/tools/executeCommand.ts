@@ -2,13 +2,16 @@ import { tool } from "ai";
 import { z } from "zod";
 import { spawn } from "child_process";
 import type { ToolContext } from "./types";
+import { TOOL_DEFAULTS } from "./defaults";
 
 export const executeCommandInputSchema = z.object({
   command: z.string().describe("The shell command to execute"),
   timeout: z
     .number()
     .optional()
-    .describe("Timeout in milliseconds (default: 30000)"),
+    .describe(
+      `Timeout in milliseconds (default: ${TOOL_DEFAULTS.timeouts.command})`,
+    ),
   toolCallDescription: z
     .string()
     .describe(
@@ -57,7 +60,7 @@ IMPORTANT: Always analyze results and adjust your approach based on findings.`,
     inputSchema: executeCommandInputSchema,
     execute: async ({
       command,
-      timeout = 30000,
+      timeout = TOOL_DEFAULTS.timeouts.command,
     }): Promise<ExecuteCommandResult> => {
       if (ctx.abortSignal?.aborted) {
         return {
@@ -100,8 +103,8 @@ IMPORTANT: Always analyze results and adjust your approach based on findings.`,
           resolve({
             success: code === 0 && !killed,
             stdout:
-              stdout.length > 50000
-                ? `${stdout.substring(0, 50000)}...\n\n(truncated) call the command again with grep / tail to paginate`
+              stdout.length > TOOL_DEFAULTS.truncation.commandOutput
+                ? `${stdout.substring(0, TOOL_DEFAULTS.truncation.commandOutput)}...\n\n(truncated) call the command again with grep / tail to paginate`
                 : stdout || "(no output)",
             stderr: stderr || "",
             command,

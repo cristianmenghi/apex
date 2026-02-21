@@ -2,6 +2,7 @@ import { tool } from "ai";
 import { z } from "zod";
 import { spawn } from "child_process";
 import type { ToolContext } from "./types";
+import { TOOL_DEFAULTS } from "./defaults";
 
 export const grepInputSchema = z.object({
   pattern: z.string().describe("The pattern to search for"),
@@ -87,7 +88,7 @@ search with flags or a more specific directory if results are truncated.`,
 
         const timeout = setTimeout(() => {
           child.kill("SIGTERM");
-        }, 30_000);
+        }, TOOL_DEFAULTS.timeouts.grep);
 
         child.stdout.on("data", (data) => {
           stdout += data.toString();
@@ -104,9 +105,9 @@ search with flags or a more specific directory if results are truncated.`,
           const noMatch = code === 1 && stderr === "";
           const matchCount = stdout ? stdout.trimEnd().split("\n").length : 0;
 
-          const truncated = stdout.length > 50_000;
+          const truncated = stdout.length > TOOL_DEFAULTS.truncation.grepOutput;
           const output = truncated
-            ? `${stdout.substring(0, 50_000)}\n\n(truncated — narrow your search)`
+            ? `${stdout.substring(0, TOOL_DEFAULTS.truncation.grepOutput)}\n\n(truncated — narrow your search)`
             : stdout || "(no matches)";
 
           resolve({

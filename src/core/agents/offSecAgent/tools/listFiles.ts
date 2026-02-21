@@ -3,6 +3,7 @@ import { z } from "zod";
 import { readdir, stat } from "fs/promises";
 import { join } from "path";
 import type { ToolContext } from "./types";
+import { TOOL_DEFAULTS } from "./defaults";
 
 export const listFilesInputSchema = z.object({
   directory: z
@@ -84,7 +85,7 @@ Each directory entry is suffixed with "/" for easy identification.`,
           };
         }
 
-        const MAX_ENTRIES = 5_000;
+        const MAX_ENTRIES = TOOL_DEFAULTS.truncation.directoryEntries;
 
         let files: string[];
         if (recursive) {
