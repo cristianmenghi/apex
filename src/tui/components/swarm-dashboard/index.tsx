@@ -5,6 +5,8 @@ import { SpinnerDots } from "../sprites";
 import { useDialog } from "../../context/dialog";
 import type { ResumeInfo } from "../../../core/session/loader";
 import { useTheme } from "../../theme";
+import { useResponsiveLayout } from "../../hooks/use-responsive-layout";
+import MinimalSizeWarning from "../min-size-warning";
 
 // Re-export DisplayMessage as UIMessage for backwards compatibility
 export type UIMessage = DisplayMessage;
@@ -46,6 +48,7 @@ export default function SwarmDashboard({
   onResumeAgent,
 }: SwarmDashboardProps) {
   const { colors } = useTheme();
+  const layout = useResponsiveLayout();
   const [currentView, setCurrentView] = useState<"overview" | "detail">(
     "overview",
   );
@@ -173,13 +176,13 @@ export default function SwarmDashboard({
         return;
       }
       if (key.name === "down") {
-        // Move down 2 (2-column grid)
-        setFocusedIndex((prev) => Math.min(prev + 2, agentCount - 1));
+        // Move down by column count (dynamic: 1, 2, or 3)
+        setFocusedIndex((prev) => Math.min(prev + layout.agentColumns, agentCount - 1));
         return;
       }
       if (key.name === "up") {
-        // Move up 2 (2-column grid)
-        setFocusedIndex((prev) => Math.max(prev - 2, 0));
+        // Move up by column count (dynamic: 1, 2, or 3)
+        setFocusedIndex((prev) => Math.max(prev - layout.agentColumns, 0));
         return;
       }
 
@@ -241,21 +244,41 @@ export default function SwarmDashboard({
     );
   }
 
+  // Show warning if terminal is too small
+  if (layout.minimal) {
+    return <MinimalSizeWarning />;
+  }
+
   // Overview view
   return (
     <box flexDirection="column" width="100%" height="100%" flexGrow={1}>
-      {/* Main content area */}
-      <box flexDirection="row" flexGrow={1} gap={2} padding={1}>
-        {/* Left: Discovery panel */}
-        <DiscoveryPanel
-          agent={discoveryAgent}
-          endpoints={allEndpoints}
-          showLogs={showDiscoveryLogs}
-          onToggleLogs={() => setShowDiscoveryLogs((prev) => !prev)}
-        />
+      {/* Main content area - responsive layout */}
+      {layout.compact && showDiscoveryLogs ? (
+        /* Compact mode with discovery panel expanded: full-width panel, grid hidden below */
+        <box flexDirection="column" flexGrow={1} gap={2} padding={1}>
+          <DiscoveryPanel
+            agent={discoveryAgent}
+            endpoints={allEndpoints}
+            showLogs={showDiscoveryLogs}
+            onToggleLogs={() => setShowDiscoveryLogs((prev) => !prev)}
+            compactMode={true}
+          />
+          {/* Grid hidden when panel is expanded in compact mode */}
+        </box>
+      ) : (
+        /* Standard/Wide or Compact collapsed: row layout with thin discovery panel on left */
+        <box flexDirection="row" flexGrow={1} gap={2} padding={1}>
+          {/* Left: Discovery panel (thin in compact collapsed, normal width in standard/wide) */}
+          <DiscoveryPanel
+            agent={discoveryAgent}
+            endpoints={allEndpoints}
+            showLogs={showDiscoveryLogs}
+            onToggleLogs={() => setShowDiscoveryLogs((prev) => !prev)}
+            compactMode={layout.compact}
+          />
 
-        {/* Right: Agent card grid */}
-        <box flexDirection="column" flexGrow={1} gap={1}>
+          {/* Right: Agent card grid */}
+          <box flexDirection="column" flexGrow={1} gap={1}>
           {pentestAgents.length === 0 ? (
             <box
               flexGrow={1}
@@ -295,10 +318,13 @@ export default function SwarmDashboard({
                 setSelectedAgentId(id);
                 setCurrentView("detail");
               }}
+              agentColumns={layout.agentColumns}
+              compactCards={layout.compactCards}
             />
           )}
         </box>
-      </box>
+        </box>
+      )}
 
       {/* Completion banner */}
       {isCompleted && (
@@ -353,6 +379,7 @@ interface DiscoveryPanelProps {
   endpoints: string[];
   showLogs: boolean;
   onToggleLogs: () => void;
+  compactMode?: boolean;
 }
 
 function DiscoveryPanel({
@@ -360,9 +387,81 @@ function DiscoveryPanel({
   endpoints,
   showLogs,
   onToggleLogs,
+  compactMode = false,
 }: DiscoveryPanelProps) {
   const { colors } = useTheme();
-  // Expanded logs view
+
+  // Thin status bar for compact mode when collapsed
+  if (compactMode && !showLogs) {
+    return (
+      <box
+        width={5}
+        border
+        borderColor={
+          agent?.status === "pending" ? colors.primary : colors.textMuted
+        }
+        backgroundColor={colors.background}
+        flexDirection="column"
+        onMouseDown={onToggleLogs}
+        padding={0}
+      >
+        {/* Status icon (1 char + padding) */}
+        <box
+          flexDirection="row"
+          alignItems="center"
+          justifyContent="center"
+          padding={1}
+          borderColor={colors.textMuted}
+          border={["bottom"]}
+          flexGrow={1}
+        >
+          {!agent && <text fg={colors.textMuted}>·</text>}
+          {agent?.status === "pending" && (
+            <text fg={colors.primary}>◐</text>
+          )}
+          {agent?.status === "completed" && (
+            <text fg={colors.primary}>✓</text>
+          )}
+          {agent?.status === "failed" && (
+            <text fg={colors.error}>✗</text>
+          )}
+          {agent?.status === "paused" && (
+            <text fg={colors.tierRisky}>⏸</text>
+          )}
+        </box>
+
+        {/* Toggle hint */}
+        <box
+          flexDirection="row"
+          alignItems="center"
+          justifyContent="center"
+          padding={0}
+          height={1}
+        >
+          <text fg={colors.textMuted} width={5}>
+            [D]
+          </text>
+        </box>
+
+        {/* Endpoint count - truncate to fit in 5 char width */}
+        {agent && (
+          <box
+            flexDirection="column"
+            padding={0}
+            height={1}
+            alignItems="center"
+            justifyContent="center"
+          >
+            <text fg={colors.textMuted} width={5}>
+              {endpoints.length}
+            </text>
+          </box>
+        )}
+      </box>
+    );
+  }
+
+  // Expanded logs view (full width in compact mode or normal expanded view)
   if (showLogs && agent) {
     return (
       <box
@@ -531,9 +630,10 @@ interface AgentCardProps {
   agent: Subagent;
   focused: boolean;
   onSelect: () => void;
+  compactCards?: boolean;
 }
 
-function AgentCard({ agent, focused, onSelect }: AgentCardProps) {
+function AgentCard({ agent, focused, onSelect, compactCards = false }: AgentCardProps) {
   const { colors } = useTheme();
   const statusIcon = {
     pending: "◐",
@@ -592,21 +692,25 @@ function AgentCard({ agent, focused, onSelect }: AgentCardProps) {
       {/* Header row */}
       <box flexDirection="row" alignItems="center" gap={1} flexWrap="wrap">
         <text fg={statusColor}>{statusIcon}</text>
-        <text fg={focused ? colors.text : colors.textMuted}>{agent.name}</text>
-      </box>
-
-      {/* Target - allow wrapping */}
-      <text fg={colors.textMuted}>{agent.target}</text>
-
-      {/* Stats row */}
-      <box flexDirection="row" gap={2} marginTop={1}>
-        <text fg={colors.textMuted}>
-          <span fg={colors.primary}>{stats.toolCalls}</span> calls
-        </text>
-        <text fg={colors.textMuted}>
-          <span fg={colors.primary}>{agent.messages.length}</span> msgs
+        <text fg={focused ? colors.text : colors.textMuted}>
+          {compactCards ? agent.name.slice(0, 8) : agent.name}
         </text>
       </box>
+
+      {/* Target - allow wrapping, hidden in compact cards mode */}
+      {!compactCards && <text fg={colors.textMuted}>{agent.target}</text>}
+
+      {/* Stats row - hidden in compact cards mode */}
+      {!compactCards && (
+        <box flexDirection="row" gap={2} marginTop={1}>
+          <text fg={colors.textMuted}>
+            <span fg={colors.primary}>{stats.toolCalls}</span> calls
+          </text>
+          <text fg={colors.textMuted}>
+            <span fg={colors.primary}>{agent.messages.length}</span> msgs
+          </text>
+        </box>
+      )}
 
       {/* Activity / Status - single line */}
       <box height={1} overflow="hidden">
@@ -636,21 +740,25 @@ interface AgentCardGridProps {
   agents: Subagent[];
   focusedIndex: number;
   onSelectAgent: (agentId: string) => void;
+  agentColumns?: 1 | 2 | 3;
+  compactCards?: boolean;
 }
 
 function AgentCardGrid({
   agents,
   focusedIndex,
   onSelectAgent,
+  agentColumns = 2,
+  compactCards = false,
 }: AgentCardGridProps) {
-  // Organize into rows of 2
+  // Organize into rows based on dynamic column count
   const rows = useMemo(() => {
     const result: Subagent[][] = [];
-    for (let i = 0; i < agents.length; i += 2) {
-      result.push(agents.slice(i, i + 2));
+    for (let i = 0; i < agents.length; i += agentColumns) {
+      result.push(agents.slice(i, i + agentColumns));
     }
     return result;
-  }, [agents]);
+  }, [agents, agentColumns]);
 
   return (
     <scrollbox
@@ -664,18 +772,22 @@ function AgentCardGrid({
       {rows.map((row, rowIndex) => (
         <box key={rowIndex} flexDirection="row" gap={1} width="100%">
           {row.map((agent, colIndex) => {
-            const flatIndex = rowIndex * 2 + colIndex;
+            const flatIndex = rowIndex * agentColumns + colIndex;
             return (
               <AgentCard
                 key={agent.id}
                 agent={agent}
                 focused={flatIndex === focusedIndex}
                 onSelect={() => onSelectAgent(agent.id)}
+                compactCards={compactCards}
               />
             );
           })}
-          {/* Add empty spacer if odd number of agents in last row */}
-          {row.length === 1 && <box flexGrow={1} flexBasis={0} minWidth={40} />}
+          {/* Add empty spacers for remaining columns in last row */}
+          {row.length < agentColumns &&
+            Array.from({ length: agentColumns - row.length }).map((_, i) => (
+              <box key={`spacer-${i}`} flexGrow={1} flexBasis={0} minWidth={40} />
+            ))}
         </box>
       ))}
     </scrollbox>
