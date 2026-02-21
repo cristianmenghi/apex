@@ -4,6 +4,10 @@ import { join } from "path";
 import { writeFileSync, mkdirSync, existsSync } from "fs";
 import type { ToolContext } from "./types";
 import type { DocumentedAssetRecord } from "../../specialized/attackSurface/schemas";
+import {
+  buildMarkdownDocument,
+  type MarkdownSection,
+} from "../../../utils/markdown";
 
 /**
  * Factory for the `document_asset` tool.
@@ -141,6 +145,62 @@ Each asset creates a JSON file in the assets directory for tracking and analysis
       };
 
       writeFileSync(filepath, JSON.stringify(assetRecord, null, 2));
+
+      // Write human-readable markdown
+      const sections: MarkdownSection[] = [
+        { heading: "Description", content: asset.description },
+      ];
+
+      const detailLines: string[] = [];
+      if (asset.details.url)
+        detailLines.push(`- **URL:** ${asset.details.url}`);
+      if (asset.details.ip) detailLines.push(`- **IP:** ${asset.details.ip}`);
+      if (asset.details.ports?.length)
+        detailLines.push(`- **Ports:** ${asset.details.ports.join(", ")}`);
+      if (asset.details.services?.length)
+        detailLines.push(
+          `- **Services:** ${asset.details.services.join(", ")}`,
+        );
+      if (asset.details.technology?.length)
+        detailLines.push(
+          `- **Technology:** ${asset.details.technology.join(", ")}`,
+        );
+      if (asset.details.endpoints?.length)
+        detailLines.push(
+          `- **Endpoints:** ${asset.details.endpoints.join(", ")}`,
+        );
+      if (asset.details.authentication)
+        detailLines.push(
+          `- **Authentication:** ${asset.details.authentication}`,
+        );
+      if (asset.details.status !== undefined)
+        detailLines.push(`- **Status:** ${asset.details.status}`);
+
+      if (detailLines.length > 0) {
+        sections.push({ heading: "Details", content: detailLines.join("\n") });
+      }
+
+      if (asset.notes) {
+        sections.push({ heading: "Notes", content: asset.notes });
+      }
+
+      const mdFilename = filename.replace(/\.json$/, ".md");
+      const mdPath = join(assetsPath, mdFilename);
+
+      const markdown = buildMarkdownDocument(
+        asset.assetName,
+        {
+          Type: asset.assetType,
+          "Risk Level": asset.riskLevel,
+          Target: ctx.session.targets[0],
+          "Discovered At": assetRecord.discoveredAt,
+          Session: ctx.session.id,
+        },
+        sections,
+        "*This asset was automatically documented by the Pensar penetration testing agent.*",
+      );
+
+      writeFileSync(mdPath, markdown);
 
       return {
         success: true,

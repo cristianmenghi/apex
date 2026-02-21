@@ -3,6 +3,10 @@ import { z } from "zod";
 import { join } from "path";
 import { writeFileSync, appendFileSync } from "fs";
 import type { ToolContext } from "./types";
+import {
+  buildMarkdownDocument,
+  type MarkdownSection,
+} from "../../../utils/markdown";
 
 export const documentFindingInputSchema = z.object({
   title: z.string().describe("Finding title"),
@@ -73,42 +77,33 @@ FINDING STRUCTURE:
         writeFileSync(jsonPath, JSON.stringify(findingWithMeta, null, 2));
 
         // Write human-readable markdown
-        const markdown = `# ${finding.title}
+        const sections: MarkdownSection[] = [
+          { heading: "Description", content: finding.description },
+          { heading: "Impact", content: finding.impact },
+          {
+            heading: "Evidence",
+            content: `\`\`\`\n${finding.evidence}\n\`\`\``,
+          },
+          { heading: "POC", content: `Path: \`${finding.pocPath}\`` },
+          { heading: "Remediation", content: finding.remediation },
+        ];
 
-**Severity:** ${finding.severity}  
-**Target:** ${session.targets[0]}  
-**Endpoint:** ${finding.endpoint}  
-**Date:** ${timestamp}  
-**Session:** ${session.id}
+        if (finding.references) {
+          sections.push({ heading: "References", content: finding.references });
+        }
 
-## Description
-
-${finding.description}
-
-## Impact
-
-${finding.impact}
-
-## Evidence
-
-\`\`\`
-${finding.evidence}
-\`\`\`
-
-## POC
-
-Path: \`${finding.pocPath}\`
-
-## Remediation
-
-${finding.remediation}
-
-${finding.references ? `## References\n\n${finding.references}` : ""}
-
----
-
-*This finding was automatically documented by the Pensar penetration testing agent.*
-`;
+        const markdown = buildMarkdownDocument(
+          finding.title,
+          {
+            Severity: finding.severity,
+            Target: session.targets[0],
+            Endpoint: finding.endpoint,
+            Date: timestamp,
+            Session: session.id,
+          },
+          sections,
+          "*This finding was automatically documented by the Pensar penetration testing agent.*",
+        );
 
         writeFileSync(mdPath, markdown);
 
