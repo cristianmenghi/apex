@@ -8,8 +8,12 @@ import type {
 import { hasToolCall } from "ai";
 import type { OffensiveSecurityAgentInput, ConsumeCallbacks } from "./types";
 import { createAllTools } from "./tools";
+import type { AgentFactories } from "./tools/types";
 import { createResponseTool, RESPONSE_TOOL_NAME } from "./tools/response";
 import { DEFAULT_SYSTEM_PROMPT } from "./prompt";
+import { runAuthenticationAgent } from "../../api/authentication";
+import { BlackboxAttackSurfaceAgent } from "../specialized/attackSurface/blackboxAgent";
+import { WhiteboxAttackSurfaceAgent } from "../specialized/whiteboxAttackSurface/agent";
 
 /**
  * General-purpose offensive security agent harness.
@@ -59,6 +63,19 @@ export class OffensiveSecurityAgent<TResult = void> {
   constructor(input: OffensiveSecurityAgentInput<TResult>) {
     this.subagentId = input.subagentId;
 
+    // -- Agent factories (injected so tool files avoid circular imports) ------
+    const agentFactories: AgentFactories = {
+      runAuthentication: (factoryInput) => runAuthenticationAgent(factoryInput),
+      runBlackboxAttackSurface: async (factoryInput, consumeCallbacks) => {
+        const agent = new BlackboxAttackSurfaceAgent(factoryInput);
+        return agent.consume(consumeCallbacks);
+      },
+      runWhiteboxAttackSurface: async (factoryInput, consumeCallbacks) => {
+        const agent = new WhiteboxAttackSurfaceAgent(factoryInput);
+        return agent.consume(consumeCallbacks);
+      },
+    };
+
     // -- Tools ----------------------------------------------------------------
     const builtinTools = createAllTools({
       session: input.session,
@@ -68,6 +85,7 @@ export class OffensiveSecurityAgent<TResult = void> {
       authConfig: input.authConfig,
       callbacks: input.callbacks,
       subagentCallbacks: input.subagentCallbacks,
+      agentFactories,
     });
 
     let tools: ToolSet = input.extraTools

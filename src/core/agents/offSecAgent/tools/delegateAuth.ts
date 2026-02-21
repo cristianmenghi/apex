@@ -4,8 +4,6 @@ import { join } from "path";
 import { writeFileSync } from "fs";
 import type { ToolContext } from "./types";
 import { type AuthCredentials } from "../../specialized/authenticationAgent/types";
-// runAuthenticationAgent is dynamically imported inside execute() to break
-// the circular dependency: authAgent → offensiveSecurityAgent → tools → delegateAuth → authAgent
 
 /**
  * Merge session-level credentials with explicitly passed credentials.
@@ -234,12 +232,16 @@ When to use delegate_to_auth_subagent vs authenticate_session:
           tokens,
         });
 
-        // Dynamic import to break circular dependency:
-        // authAgent → offensiveSecurityAgent → tools/index → delegateAuth → api/authentication → authAgent
-        const { runAuthenticationAgent } =
-          await import("../../../api/authentication");
+        if (!ctx.agentFactories?.runAuthentication) {
+          return {
+            success: false,
+            authenticated: false,
+            message:
+              "delegate_to_auth_subagent requires agentFactories.runAuthentication in the tool context.",
+          };
+        }
 
-        const result = await runAuthenticationAgent({
+        const result = await ctx.agentFactories.runAuthentication({
           target,
           session: ctx.session,
           credentials,

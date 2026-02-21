@@ -1,8 +1,49 @@
 import type { AIModel } from "../../../ai";
 import type { AIAuthConfig } from "../../../ai/utils";
 import type { SessionInfo } from "../../../session";
+import type { AuthenticationAgentInput } from "../../specialized/authenticationAgent/agent";
+import type { AttackSurfaceAgentInput } from "../../specialized/attackSurface/blackboxAgent";
+import type { WhiteboxAttackSurfaceAgentInput } from "../../specialized/whiteboxAttackSurface/agent";
+import type { AttackSurfaceResult } from "../../specialized/attackSurface/blackboxAgent";
+import type { WhiteboxAttackSurfaceResult } from "../../specialized/whiteboxAttackSurface/types";
 
 import type { ConsumeCallbacks, SubagentConsumeCallbacks } from "../types";
+
+/** Return type of the `runAuthentication` factory function. */
+export type RunAuthenticationResult = {
+  success: boolean;
+  summary: string;
+  exportedCookies: string | undefined;
+  exportedHeaders: Record<string, string> | undefined;
+  strategy: string;
+  authBarrier: { type: string; details: string; loginUrl?: string } | undefined;
+  authDataPath: string;
+};
+
+/**
+ * Factory functions that tools use to spawn sub-agents.
+ *
+ * Injected via `ToolContext.agentFactories` so tool files never need to
+ * import agent modules directly — breaking the circular-dependency chain.
+ */
+export type AgentFactories = {
+  /** Run the authentication sub-agent (wraps `runAuthenticationAgent`). */
+  runAuthentication?: (
+    input: AuthenticationAgentInput,
+  ) => Promise<RunAuthenticationResult>;
+
+  /** Instantiate and consume the blackbox attack-surface agent. */
+  runBlackboxAttackSurface?: (
+    input: AttackSurfaceAgentInput,
+    consumeCallbacks?: ConsumeCallbacks,
+  ) => Promise<AttackSurfaceResult>;
+
+  /** Instantiate and consume the whitebox attack-surface agent. */
+  runWhiteboxAttackSurface?: (
+    input: WhiteboxAttackSurfaceAgentInput,
+    consumeCallbacks?: ConsumeCallbacks,
+  ) => Promise<WhiteboxAttackSurfaceResult>;
+};
 
 /**
  * Shared context passed to every tool factory.
@@ -30,4 +71,12 @@ export type ToolContext = {
   /** Callbacks for forwarding subagent stream events to the parent consumer */
   subagentCallbacks?: SubagentConsumeCallbacks;
   callbacks?: ConsumeCallbacks;
+
+  /**
+   * Factory functions for spawning sub-agents.
+   *
+   * Populated by the top-level agent harness so tool files never need to
+   * import agent modules directly (avoids circular dependencies).
+   */
+  agentFactories?: AgentFactories;
 };

@@ -1,8 +1,6 @@
 import { tool } from "ai";
 import { z } from "zod";
 import type { ToolContext } from "./types";
-import type { AttackSurfaceResult } from "../../specialized/attackSurface/blackboxAgent";
-import type { WhiteboxAttackSurfaceResult } from "../../specialized/whiteboxAttackSurface/types";
 
 /**
  * Factory for the `run_attack_surface` tool.
@@ -70,25 +68,33 @@ should be passed directly to spawn_pentest_swarm for deep testing.`,
       // -----------------------------------------------------------------------
       if (cwd) {
         try {
-          const { WhiteboxAttackSurfaceAgent } =
-            await import("../../specialized/whiteboxAttackSurface/agent");
+          if (!ctx.agentFactories?.runWhiteboxAttackSurface) {
+            return {
+              success: false,
+              targets: [],
+              totalTargets: 0,
+              message:
+                "run_attack_surface (whitebox) requires agentFactories.runWhiteboxAttackSurface in the tool context.",
+            };
+          }
 
-          const agent = new WhiteboxAttackSurfaceAgent({
-            codebasePath: cwd,
-            model: ctx.model,
-            session: ctx.session,
-            authConfig: ctx.authConfig,
-            abortSignal: ctx.abortSignal,
-            callbacks: ctx.callbacks,
-          });
-
-          const result: WhiteboxAttackSurfaceResult = await agent.consume({
-            onToolCall: (d) =>
-              console.log(`  [recon:whitebox] → ${d.toolName}`),
-            onToolResult: (d) =>
-              console.log(`  [recon:whitebox] ✓ ${d.toolName}`),
-            subagentCallbacks,
-          });
+          const result = await ctx.agentFactories.runWhiteboxAttackSurface(
+            {
+              codebasePath: cwd,
+              model: ctx.model,
+              session: ctx.session,
+              authConfig: ctx.authConfig,
+              abortSignal: ctx.abortSignal,
+              callbacks: ctx.callbacks,
+            },
+            {
+              onToolCall: (d) =>
+                console.log(`  [recon:whitebox] → ${d.toolName}`),
+              onToolResult: (d) =>
+                console.log(`  [recon:whitebox] ✓ ${d.toolName}`),
+              subagentCallbacks,
+            },
+          );
 
           // Flatten whitebox results into the same targets shape the swarm expects
           const targets = result.apps.flatMap((app) =>
@@ -128,24 +134,33 @@ should be passed directly to spawn_pentest_swarm for deep testing.`,
       // Blackbox mode — probe live target
       // -----------------------------------------------------------------------
       try {
-        const { BlackboxAttackSurfaceAgent } =
-          await import("../../specialized/attackSurface/blackboxAgent");
+        if (!ctx.agentFactories?.runBlackboxAttackSurface) {
+          return {
+            success: false,
+            targets: [],
+            totalTargets: 0,
+            message:
+              "run_attack_surface (blackbox) requires agentFactories.runBlackboxAttackSurface in the tool context.",
+          };
+        }
 
-        const agent = new BlackboxAttackSurfaceAgent({
-          target: target!,
-          model: ctx.model,
-          session: ctx.session,
-          authConfig: ctx.authConfig,
-          abortSignal: ctx.abortSignal,
-          callbacks: ctx.callbacks,
-        });
-
-        const result: AttackSurfaceResult = await agent.consume({
-          onToolCall: (d) => console.log(`  [recon:blackbox] → ${d.toolName}`),
-          onToolResult: (d) =>
-            console.log(`  [recon:blackbox] ✓ ${d.toolName}`),
-          subagentCallbacks,
-        });
+        const result = await ctx.agentFactories.runBlackboxAttackSurface(
+          {
+            target: target!,
+            model: ctx.model,
+            session: ctx.session,
+            authConfig: ctx.authConfig,
+            abortSignal: ctx.abortSignal,
+            callbacks: ctx.callbacks,
+          },
+          {
+            onToolCall: (d) =>
+              console.log(`  [recon:blackbox] → ${d.toolName}`),
+            onToolResult: (d) =>
+              console.log(`  [recon:blackbox] ✓ ${d.toolName}`),
+            subagentCallbacks,
+          },
+        );
 
         const targetCount = result.targets.length;
         console.log(
