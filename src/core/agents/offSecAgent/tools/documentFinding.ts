@@ -1,8 +1,7 @@
 import { tool } from "ai";
 import { z } from "zod";
-import { join } from "path";
-import { writeFileSync, appendFileSync } from "fs";
 import type { ToolContext } from "./types";
+import { repos } from "../../../storage/repos";
 
 export const documentFindingInputSchema = z.object({
   title: z.string().describe("Finding title"),
@@ -48,84 +47,22 @@ FINDING STRUCTURE:
     inputSchema: documentFindingInputSchema,
     execute: async (finding) => {
       try {
-        const timestamp = new Date().toISOString();
-        const findingWithMeta = {
-          ...finding,
-          timestamp,
-          sessionId: session.id,
-          target: session.targets[0],
-        };
-
-        // Safe filename from title
-        const safeTitle = finding.title
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, "-")
-          .replace(/^-|-$/g, "")
-          .substring(0, 50);
-
-        const findingId = `${timestamp.split("T")[0]}-${safeTitle}`;
-        const jsonFilename = `${findingId}.json`;
-        const jsonPath = join(session.findingsPath, jsonFilename);
-        const mdFilename = `${findingId}.md`;
-        const mdPath = join(session.findingsPath, mdFilename);
-
-        // Write structured JSON (consumed by resolveResult)
-        writeFileSync(jsonPath, JSON.stringify(findingWithMeta, null, 2));
-
-        // Write human-readable markdown
-        const markdown = `# ${finding.title}
-
-**Severity:** ${finding.severity}  
-**Target:** ${session.targets[0]}  
-**Endpoint:** ${finding.endpoint}  
-**Date:** ${timestamp}  
-**Session:** ${session.id}
-
-## Description
-
-${finding.description}
-
-## Impact
-
-${finding.impact}
-
-## Evidence
-
-\`\`\`
-${finding.evidence}
-\`\`\`
-
-## POC
-
-Path: \`${finding.pocPath}\`
-
-## Remediation
-
-${finding.remediation}
-
-${finding.references ? `## References\n\n${finding.references}` : ""}
-
----
-
-*This finding was automatically documented by the Pensar penetration testing agent.*
-`;
-
-        writeFileSync(mdPath, markdown);
-
-        // Append to summary
-        const summaryPath = join(session.rootPath, "findings-summary.md");
-        const summaryEntry = `- [${finding.severity}] ${finding.title} - \`findings/${mdFilename}\`\n`;
-
-        try {
-          appendFileSync(summaryPath, summaryEntry);
-        } catch {
-          const header = `# Findings Summary\n\n**Target:** ${session.targets[0]}  \n**Session:** ${session.id}\n\n## All Findings\n\n`;
-          writeFileSync(summaryPath, header + summaryEntry);
-        }
+        const { mdPath, findingId } = await repos.findings.save(
+          session.id,
+          session.findingsPath,
+          session.rootPath,
+          session.targets[0],
+          finding,
+        );
 
         return {
           success: true,
-          finding: findingWithMeta,
+          finding: {
+            ...finding,
+            timestamp: new Date().toISOString(),
+            sessionId: session.id,
+            target: session.targets[0],
+          },
           filepath: mdPath,
           message: `Finding documented: [${finding.severity}] ${finding.title}`,
         };

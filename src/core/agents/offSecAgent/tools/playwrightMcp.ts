@@ -12,9 +12,9 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { tool } from "ai";
 import { z } from "zod";
-import { writeFileSync, mkdirSync, existsSync } from "fs";
-import { join, dirname } from "path";
+import { join } from "path";
 import type { Logger } from "../../../logger";
+import { createRawFileStore } from "../../../storage/json-file-store";
 
 // Types for tool results
 export interface BrowserNavigateResult {
@@ -483,10 +483,7 @@ export function createBrowserTools(
     disconnectMcpClient().catch(() => {});
   });
 
-  // Ensure evidence directory exists
-  if (!existsSync(evidenceDir)) {
-    mkdirSync(evidenceDir, { recursive: true });
-  }
+  const evidenceStore = createRawFileStore({ baseDir: evidenceDir });
 
   const descriptions =
     mode === "pentest"
@@ -532,12 +529,8 @@ export function createBrowserTools(
           const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
           const screenshotFilename = `${filename}_${timestamp}.png`;
           const screenshotPath = join(evidenceDir, screenshotFilename);
-          const dir = dirname(screenshotPath);
-          if (!existsSync(dir)) {
-            mkdirSync(dir, { recursive: true });
-          }
-          writeFileSync(
-            screenshotPath,
+          await evidenceStore.putBinary(
+            [screenshotFilename],
             Buffer.from((result as { data: string }).data, "base64"),
           );
           return {

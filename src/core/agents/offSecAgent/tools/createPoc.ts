@@ -1,26 +1,18 @@
 import { tool } from "ai";
 import { z } from "zod";
-import { join } from "path";
+import path from "path";
 import { spawn } from "child_process";
-import {
-  existsSync,
-  writeFileSync,
-  chmodSync,
-  unlinkSync,
-  mkdirSync,
-} from "fs";
+import fs from "fs/promises";
 import type { ToolContext } from "./types";
+import { repos } from "../../../storage/repos";
 
 const MAX_POC_ATTEMPTS = 3;
 
-function sanitizeFilename(str: string): string {
-  return str
-    .toLowerCase()
-    .replace(/[^a-z0-9_-]/g, "_")
-    .replace(/_+/g, "_")
-    .replace(/^_|_$/g, "")
-    .substring(0, 50);
-}
+const SHEBANGS: Record<string, string> = {
+  bash: "#!/bin/bash\nset -e\n\n",
+  python: "#!/usr/bin/env python3\n\n",
+  javascript: "#!/usr/bin/env node\n\n",
+};
 
 export const createPocInputSchema = z.object({
   pocName: z.string().describe("Short descriptive name for the POC"),
@@ -84,44 +76,28 @@ Max ${MAX_POC_ATTEMPTS} attempts per approach before pivoting.`,
       }
 
       try {
-        const pocsPath = ctx.session.pocsPath;
-        if (!existsSync(pocsPath)) {
-          mkdirSync(pocsPath, { recursive: true });
-        }
-
-        const extension =
-          poc.pocType === "bash"
-            ? ".sh"
-            : poc.pocType === "python"
-              ? ".py"
-              : ".js";
-        const sanitizedName = sanitizeFilename(poc.pocName);
-        const filename = `poc_${sanitizedName}${extension}`;
-        const pocPath = join(pocsPath, filename);
-
+        // Add header comment to content before passing to repo
         let pocContent = poc.pocContent.trim();
 
-        // Add shebang if missing
+        // Add shebang if missing so we can inject header after it
         if (!pocContent.startsWith("#!")) {
-          const shebangs: Record<string, string> = {
-            bash: "#!/bin/bash\nset -e\n\n",
-            python: "#!/usr/bin/env python3\n\n",
-            javascript: "#!/usr/bin/env node\n\n",
-          };
-          pocContent = shebangs[poc.pocType] + pocContent;
+          pocContent = SHEBANGS[poc.pocType] + pocContent;
         }
 
-        // Add header comment
         const commentChar = poc.pocType === "javascript" ? "//" : "#";
         const header = `${commentChar} POC: ${poc.description}\n${commentChar} Created: ${new Date().toISOString()}\n${commentChar} Attempt: ${currentAttempts}/${MAX_POC_ATTEMPTS}\n\n`;
-        const afterShebang = pocContent.replace(
+        pocContent = pocContent.replace(
           /^#!.*\n/,
           (match) => match + header,
         );
-        pocContent = afterShebang;
 
-        writeFileSync(pocPath, pocContent);
-        chmodSync(pocPath, 0o755);
+        // Use repo to create the file (handles mkdir, chmod, shebang check)
+        const pocPath = await repos.pocs.create(ctx.session.pocsPath, {
+          ...poc,
+          pocContent,
+        });
+
+        const filename = path.basename(pocPath);
 
         // Execute the POC
         const runner =
@@ -141,7 +117,7 @@ Max ${MAX_POC_ATTEMPTS} attempts per approach before pivoting.`,
         // Delete on failure
         if (exitCode !== 0) {
           try {
-            unlinkSync(pocPath);
+            await fs.unlink(pocPath);
           } catch {
             // ignore cleanup errors
           }

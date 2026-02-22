@@ -1,9 +1,7 @@
 import { tool } from "ai";
 import { z } from "zod";
-import { join } from "path";
-import { writeFileSync, mkdirSync, existsSync } from "fs";
 import type { ToolContext } from "./types";
-import type { DocumentedAssetRecord } from "../../specialized/attackSurface/schemas";
+import { repos } from "../../../storage/repos";
 
 /**
  * Factory for the `document_asset` tool.
@@ -13,8 +11,6 @@ import type { DocumentedAssetRecord } from "../../specialized/attackSurface/sche
  * persistence callbacks if provided.
  */
 export function documentAsset(ctx: ToolContext) {
-  const assetsPath = join(ctx.session.rootPath, "assets");
-
   return tool({
     description: `Document a discovered asset during attack surface analysis.
 
@@ -121,26 +117,12 @@ Each asset creates a JSON file in the assets directory for tracking and analysis
         ),
     }),
     execute: async (asset) => {
-      // Ensure assets directory exists
-      if (!existsSync(assetsPath)) {
-        mkdirSync(assetsPath, { recursive: true });
-      }
-
-      const sanitizedName = asset.assetName
-        .toLowerCase()
-        .replace(/[^a-z0-9-_.]/g, "_");
-      const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-      const filename = `asset_${sanitizedName}_${timestamp}.json`;
-      const filepath = join(assetsPath, filename);
-
-      const assetRecord: DocumentedAssetRecord = {
+      const filepath = await repos.assets.save(ctx.session.rootPath, {
         ...asset,
         discoveredAt: new Date().toISOString(),
         sessionId: ctx.session.id,
         target: ctx.session.targets[0],
-      };
-
-      writeFileSync(filepath, JSON.stringify(assetRecord, null, 2));
+      });
 
       return {
         success: true,

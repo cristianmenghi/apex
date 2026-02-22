@@ -1,9 +1,8 @@
 import { tool } from "ai";
 import { z } from "zod";
-import { join } from "path";
-import { writeFileSync } from "fs";
 import type { ToolContext } from "./types";
 import { type AuthCredentials } from "../../specialized/authenticationAgent/types";
+import { createRawFileStore } from "../../../storage/json-file-store";
 // runAuthenticationAgent is dynamically imported inside execute() to break
 // the circular dependency: authAgent → offensiveSecurityAgent → tools → delegateAuth → authAgent
 
@@ -250,10 +249,9 @@ When to use delegate_to_auth_subagent vs authenticate_session:
         });
 
         if (result.success) {
-          const sessionInfoPath = join(
-            ctx.session.rootPath,
-            "session-info.json",
-          );
+          const store = createRawFileStore({
+            baseDir: ctx.session.rootPath,
+          });
           const sessionInfo = {
             authenticated: true,
             username: username || "via_subagent",
@@ -263,7 +261,10 @@ When to use delegate_to_auth_subagent vs authenticate_session:
             timestamp: new Date().toISOString(),
             delegatedToSubagent: true,
           };
-          writeFileSync(sessionInfoPath, JSON.stringify(sessionInfo, null, 2));
+          await store.putRaw(
+            ["session-info.json"],
+            JSON.stringify(sessionInfo, null, 2),
+          );
         }
 
         const hasHeaders =

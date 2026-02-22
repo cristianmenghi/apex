@@ -1,11 +1,7 @@
 import { tool } from "ai";
 import { z } from "zod";
-import { join } from "path";
-import { existsSync, mkdirSync, writeFileSync } from "fs";
 import type { ToolContext } from "./types";
-
-const AUTH_DIR = "auth";
-const AUTH_DATA_FILENAME = "auth-data.json";
+import { repos } from "../../../storage/repos";
 
 /**
  * Factory for the `complete_authentication` tool.
@@ -90,24 +86,18 @@ This tool marks the end of the authentication flow.`,
         (result.exportedCookies || result.exportedHeaders)
       ) {
         try {
-          const authDir = join(ctx.session.rootPath, AUTH_DIR);
-          if (!existsSync(authDir)) {
-            mkdirSync(authDir, { recursive: true });
-          }
-
-          authDataPath = join(authDir, AUTH_DATA_FILENAME);
-
-          const authData = {
-            authenticated: true,
-            strategy: result.strategy || "unknown",
-            cookies: result.exportedCookies || "",
-            headers: result.exportedHeaders || {},
-            summary: result.summary,
-            target: ctx.target || "",
-            timestamp: new Date().toISOString(),
-          };
-
-          writeFileSync(authDataPath, JSON.stringify(authData, null, 2));
+          authDataPath = await repos.auth.saveAuthData(
+            ctx.session.rootPath,
+            {
+              authenticated: true,
+              strategy: result.strategy || "unknown",
+              cookies: result.exportedCookies || "",
+              headers: result.exportedHeaders || {},
+              summary: result.summary,
+              target: ctx.target || "",
+              timestamp: new Date().toISOString(),
+            },
+          );
           console.log(`Auth data persisted to ${authDataPath}`);
         } catch (err) {
           console.error(`Failed to persist auth data: ${err}`);

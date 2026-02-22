@@ -1,8 +1,8 @@
 import { tool } from "ai";
 import { z } from "zod";
-import { join } from "path";
-import { writeFileSync } from "fs";
+import path from "path";
 import type { ToolContext } from "./types";
+import { createRawFileStore } from "../../../storage/json-file-store";
 
 /**
  * Factory for the `provide_comparison_results` tool.
@@ -89,12 +89,15 @@ Results will be saved to: comparison-results.json in the session directory.`,
         precision,
       };
 
-      const resultsPath = join(ctx.session.rootPath, "comparison-results.json");
-      writeFileSync(resultsPath, JSON.stringify(result, null, 2));
+      const store = createRawFileStore({ baseDir: ctx.session.rootPath });
+      await store.putRaw(
+        ["comparison-results.json"],
+        JSON.stringify(result, null, 2),
+      );
 
       return {
         success: true,
-        resultsPath,
+        resultsPath: path.join(ctx.session.rootPath, "comparison-results.json"),
         message: `Comparison complete. Matched: ${
           matched.length
         }/${totalExpected}, Precision: ${Math.round(

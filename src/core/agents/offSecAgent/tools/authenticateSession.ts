@@ -1,8 +1,7 @@
 import { tool } from "ai";
 import { z } from "zod";
-import { join } from "path";
-import { writeFileSync } from "fs";
 import type { ToolContext } from "./types";
+import { createRawFileStore } from "../../../storage/json-file-store";
 
 /**
  * Factory for the `authenticate_session` tool.
@@ -97,7 +96,7 @@ Use this to:
           cookieString.length > 0;
 
         // Save session info for reuse
-        const sessionInfoPath = join(ctx.session.rootPath, "session-info.json");
+        const store = createRawFileStore({ baseDir: ctx.session.rootPath });
         const sessionInfo = {
           authenticated,
           username,
@@ -105,7 +104,10 @@ Use this to:
           loginUrl,
           timestamp: new Date().toISOString(),
         };
-        writeFileSync(sessionInfoPath, JSON.stringify(sessionInfo, null, 2));
+        await store.putRaw(
+          ["session-info.json"],
+          JSON.stringify(sessionInfo, null, 2),
+        );
 
         return {
           success: authenticated,

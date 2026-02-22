@@ -1,8 +1,7 @@
 import { tool } from "ai";
 import { z } from "zod";
-import { join } from "path";
-import { writeFileSync } from "fs";
 import type { ToolContext } from "./types";
+import { repos } from "../../../storage/repos";
 
 /**
  * Factory for the `create_attack_surface_report` tool.
@@ -58,11 +57,10 @@ Call this at the END of your analysis with:
         ),
     }),
     execute: async (results) => {
-      const resultsPath = join(
+      const resultsPath = await repos.attackSurface.save(
         ctx.session.rootPath,
-        "attack-surface-results.json",
+        results,
       );
-      writeFileSync(resultsPath, JSON.stringify(results, null, 2));
 
       return {
         success: true,
