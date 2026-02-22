@@ -7,6 +7,13 @@ import z from "zod";
 import { NamedError } from "../../util/errors";
 import { Lock } from "../../util/lock";
 
+/**
+ * @deprecated Prefer using repositories from `storage/repos` for new code.
+ * This namespace is retained for execution directory management (createDir,
+ * writeRaw, read, locate) and message CRUD operations that have not yet been
+ * migrated to repos. Once those consumers are migrated, this file can be
+ * removed entirely.
+ */
 export namespace Storage {
   export const NotFoundError = NamedError.create(
     "NotFoundError",

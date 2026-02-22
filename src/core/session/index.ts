@@ -8,12 +8,16 @@ import type { Message } from "../messages/types";
 import { Messages } from "../messages";
 import { RateLimiter } from "../services/rateLimiter";
 import {
-  ToolsetStateSchema,
   type ToolsetState,
   toggleTool as toolsetToggle,
 } from "../toolset";
 import { repos } from "../storage/repos";
-import type { OperatorSessionState as RepoOperatorSessionState } from "../storage/schemas/operator";
+import {
+  SessionInfoSchema,
+  type OperatorSessionState,
+  type OperatorSettings,
+  type SessionConfig,
+} from "../storage/schemas";
 
 /**
  * Default outcome guidance (safe, non-destructive)
@@ -36,75 +40,9 @@ export const DEFAULT_OFFENSIVE_HEADERS: Record<string, string> = {
   "User-Agent": "pensar-apex",
 };
 
-const AuthCredentialsObject = z.object({
-  // Username/password auth
-  username: z.string().optional(),
-  password: z.string().optional(),
-  loginUrl: z.string().optional(),
-  additionalFields: z.record(z.string(), z.string()).optional(),
-  // API key auth
-  apiKey: z.string().optional(),
-  // Pre-existing tokens for verification
-  tokens: z
-    .object({
-      bearerToken: z.string().optional(),
-      cookies: z.string().optional(),
-      sessionToken: z.string().optional(),
-      customHeaders: z.record(z.string(), z.string()).optional(),
-    })
-    .optional(),
-});
-
-export type AuthCredentials = z.infer<typeof AuthCredentialsObject>;
-
-const ScopeConstraintsObject = z.object({
-  allowedHosts: z.string().array().optional(),
-  allowedPorts: z.number().array().optional(),
-  strictScope: z.boolean().optional(),
-});
-
-export type ScopeConstraints = z.infer<typeof ScopeConstraintsObject>;
-
-const OffensiveHeadersConfigObject = z.object({
-  mode: z.enum(["none", "default", "custom"]),
-  headers: z.record(z.string(), z.string()).optional(),
-});
-
-export type OffensiveHeadersConfig = z.infer<
-  typeof OffensiveHeadersConfigObject
->;
-
-const OperatorSettingsObject = z.object({
-  initialMode: z.enum(["plan", "manual", "auto"]).default("manual"),
-  autoApproveTier: z.number().min(1).max(5).default(2),
-  enableSuggestions: z.boolean().default(true),
-});
-
-export type OperatorSettings = z.infer<typeof OperatorSettingsObject>;
-
-const SessionConfigObject = z.object({
-  offensiveHeaders: OffensiveHeadersConfigObject.optional(),
-  sessionType: z.enum(["web-app"]).optional(),
-  mode: z.enum(["auto", "driver", "operator"]).optional(),
-  outcomeGuidance: z.string().optional(),
-  scopeConstraints: ScopeConstraintsObject.optional(),
-  authCredentials: AuthCredentialsObject.optional(),
-  authenticationInstructions: z.string().optional(),
-  requestsPerSecond: z.number().optional(),
-  operatorSettings: OperatorSettingsObject.optional(),
-  /** Enable CVSS 4.0 scoring for findings (defaults to true if not specified) */
-  enableCvssScoring: z.boolean().optional(),
-  /** Model to use for CVSS scorer subagent (default: claude-4-5-haiku) */
-  cvssModel: z.string().optional(),
-  /** Toolset state for controlling which tools are available */
-  toolsetState: ToolsetStateSchema.optional(),
-  /** Whether to enumerate subdomains during attack surface discovery (default: false) */
-  enumerateSubdomains: z.boolean().optional(),
-  /** Local codebase path for whitebox analysis (source code access) */
-  cwd: z.string().optional(),
-});
-
-export type SessionConfig = z.infer<typeof SessionConfigObject>;
+// Re-export canonical types for backward compatibility
+export type { AuthCredentials, ScopeConstraints, OffensiveHeadersConfig } from "../storage/schemas";
+export type { OperatorSettings, SessionConfig };
 
 // ============================================================================
 // ExecutionSession - Legacy-compatible session interface for agent consumption
@@ -201,8 +139,6 @@ export async function createExecution(
   await Storage.createDir(["executions", session.id, "logs"]);
   await Storage.createDir(["executions", session.id, "pocs"]);
 
-  const startTime = new Date().toISOString();
-
   // Write README.md
   const readme = generateSessionReadme(session);
   await Storage.writeRaw(["executions", session.id, "README.md"], readme);
@@ -290,24 +226,9 @@ export function getOffensiveHeaders(
 // SessionInfo - Original session metadata interface
 // ============================================================================
 
-export const SessionInfoObject = z.object({
-  id: Identifier.schema("session"),
-  name: z.string(),
-  version: z.string(),
-  targets: z.array(z.string()),
-  config: SessionConfigObject.optional(),
-  time: z.object({
-    created: z.number(),
-    updated: z.number(),
-  }),
-  rootPath: z.string(),
-  logsPath: z.string(),
-  findingsPath: z.string(),
-  scratchpadPath: z.string(),
-  pocsPath: z.string(),
-});
+export const SessionInfoObject = SessionInfoSchema;
 
-export type SessionInfo = z.output<typeof SessionInfoObject> & {
+export type SessionInfo = z.output<typeof SessionInfoSchema> & {
   _rateLimiter?: RateLimiter;
   tokensIn?: number;
   tokensOut?: number;
@@ -456,39 +377,8 @@ export const removeMessage = async (input: z.output<typeof RemoveMsgInput>) => {
 
 // ============================================================================
 // Operator Session State - For resume functionality
+// (Uses canonical OperatorSessionState from storage/schemas/operator)
 // ============================================================================
-
-/**
- * Persisted operator dashboard state for session resumption
- */
-export interface OperatorSessionState {
-  /** Operator mode: plan, manual, auto */
-  mode: string;
-  /** Auto-approve tier level */
-  autoApproveTier: number;
-  /** Current stage: setup, recon, foothold, etc. */
-  currentStage: string;
-  /** Chat messages history */
-  messages: unknown[];
-  /** Discovered attack surface endpoints */
-  attackSurface: unknown[];
-  /** Found credentials */
-  credentials: unknown[];
-  /** Verified vulnerabilities */
-  verifiedVulns: unknown[];
-  /** Target state (host, phase, objective) */
-  targetState: unknown;
-  /** Tracked hypotheses */
-  hypotheses: unknown[];
-  /** Collected evidence */
-  evidence: unknown[];
-  /** Action approval history */
-  actionHistory: unknown[];
-  /** When the session was paused */
-  pausedAt: string;
-  /** Last run ID for log correlation */
-  lastRunId: string;
-}
 
 /**
  * Save operator dashboard state for later resumption
@@ -498,10 +388,7 @@ export async function saveOperatorState(
   state: OperatorSessionState,
 ): Promise<void> {
   const session = await get(sessionId);
-  await repos.operatorState.save(
-    session.rootPath,
-    state as unknown as RepoOperatorSessionState,
-  );
+  await repos.operatorState.save(session.rootPath, state);
   console.info("saved operator state for session", sessionId);
 }
 
@@ -513,8 +400,7 @@ export async function loadOperatorState(
 ): Promise<OperatorSessionState | null> {
   try {
     const session = await get(sessionId);
-    const result = await repos.operatorState.load(session.rootPath);
-    return result as unknown as OperatorSessionState | null;
+    return await repos.operatorState.load(session.rootPath);
   } catch (error) {
     console.error("Error loading operator state:", error);
     return null;

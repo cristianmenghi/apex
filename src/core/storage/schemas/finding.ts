@@ -1,9 +1,9 @@
 /**
  * Canonical Zod schemas for security finding persisted entities.
  *
- * Consolidates:
- * - ApexFindingObject from offSecAgent/types.ts
- * - DocumentFindingSchema from session/types.ts
+ * This is the single source of truth for finding schemas. The old
+ * duplicates (ApexFindingObject in offSecAgent/types.ts and
+ * DocumentFindingSchema in session/types.ts) have been removed.
  *
  * The severity preprocessor normalizes free-text severity strings
  * (e.g., "Critical (9.8)") into the canonical enum values.

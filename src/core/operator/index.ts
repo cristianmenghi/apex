@@ -28,7 +28,6 @@ export {
   getStagesInOrder,
   getNextStage,
   createInitialOperatorState,
-  OperatorSettingsObject,
 } from "./types";
 
 // Tool Classifier

@@ -1,12 +1,14 @@
 /**
  * Canonical Zod schemas for session-related persisted entities.
  *
- * These schemas define the on-disk JSON shapes for session metadata,
- * session configuration, and the minimal session reference used by
- * sub-agents that only need paths.
+ * This is the single source of truth for session schemas. The inline
+ * Zod objects (AuthCredentialsObject, ScopeConstraintsObject,
+ * OffensiveHeadersConfigObject, OperatorSettingsObject,
+ * SessionConfigObject) that were previously in session/index.ts have
+ * been removed; session/index.ts now imports from this module.
  *
- * Source of truth: src/core/session/index.ts (SessionInfoObject,
- * SessionConfigObject, AuthCredentialsObject, etc.)
+ * SessionInfoObject in session/index.ts is a re-export of
+ * SessionInfoSchema for backward compatibility.
  */
 
 import { z } from "zod";

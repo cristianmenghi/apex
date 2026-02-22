@@ -1,5 +1,3 @@
-import { z } from "zod";
-
 /**
  * Permission tiers for tool classification
  * Higher tier = more risk = more likely to need approval
@@ -229,13 +227,8 @@ export function createInitialOperatorState(
   };
 }
 
-/** Operator settings for session config */
-export const OperatorSettingsObject = z.object({
-  initialMode: z.enum(["plan", "manual", "auto"]).default("manual"),
-  autoApproveTier: z.number().min(1).max(5).default(2),
-});
-
-export type OperatorSettings = z.infer<typeof OperatorSettingsObject>;
+/** Operator settings re-exported from canonical schemas */
+export type { OperatorSettings } from "../storage/schemas/session";
 
 /** Endpoint discovered during attack surface mapping */
 export interface DiscoveredEndpoint {

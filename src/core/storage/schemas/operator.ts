@@ -1,11 +1,13 @@
 /**
  * Canonical Zod schemas for operator session state and sub-entities.
  *
- * Source of truth: src/core/operator/types.ts (interfaces) and
- * src/core/session/index.ts (OperatorSessionState for resume).
+ * This is the single source of truth for operator state schemas.
+ * The loosely-typed OperatorSessionState (with `unknown[]` arrays) that
+ * was previously in session/index.ts has been removed; session/index.ts
+ * now imports OperatorSessionState directly from this module.
  *
- * This replaces the loosely-typed `unknown[]` arrays in the session
- * module's OperatorSessionState with fully typed Zod schemas.
+ * Runtime interfaces (OperatorMode, OperatorStage, etc.) still live in
+ * operator/types.ts for use by the TUI and approval gate logic.
  */
 
 import { z } from "zod";
