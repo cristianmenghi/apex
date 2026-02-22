@@ -1,7 +1,6 @@
 import z from "zod";
 import path from "path";
 import os from "os";
-import { existsSync, readFileSync, writeFileSync } from "fs";
 import { Identifier } from "../id/id";
 import { Installation } from "../installation";
 import { Storage } from "../storage";
@@ -13,6 +12,8 @@ import {
   type ToolsetState,
   toggleTool as toolsetToggle,
 } from "../toolset";
+import { repos } from "../storage/repos";
+import type { OperatorSessionState as RepoOperatorSessionState } from "../storage/schemas/operator";
 
 /**
  * Default outcome guidance (safe, non-destructive)
@@ -245,6 +246,8 @@ export async function getExecution(
   sessionId: string,
 ): Promise<ExecutionSession | null> {
   try {
+    // Execution session.json is in the executions directory (not session storage),
+    // so we still use Storage.read here since there's no execution repo yet.
     const metadata = await Storage.read<
       ExecutionSession & {
         version: string;
@@ -366,42 +369,35 @@ export async function create(input: CreateInputProps) {
 
   console.info("created session", result);
 
-  // Exclude _rateLimiter from serialization (it's a class instance with methods)
-  const { _rateLimiter, ...sessionData } = result;
-  await Storage.write(["session", result.id], sessionData);
-  // await Storage.createDir(["executions", result.id]);
+  // Persist via repo (strips runtime-only fields like _rateLimiter internally)
+  await repos.sessions.create(result);
   await createExecution({ session: result });
   return result;
 }
 
-export const get = async (id: string) => {
-  const read = await Storage.read<SessionInfo>(["session", id]);
+export const get = async (id: string): Promise<SessionInfo> => {
+  const read: SessionInfo = await repos.sessions.get(id);
 
-  // Reconstruct RateLimiter instance (it gets serialized as plain object)
-  // This ensures the session has a proper RateLimiter with methods
+  // Reconstruct RateLimiter instance (runtime-only, not persisted)
   if (read.config?.requestsPerSecond) {
     read._rateLimiter = new RateLimiter({
       requestsPerSecond: read.config.requestsPerSecond,
     });
   } else {
-    // Remove any stale serialized _rateLimiter data (plain object without methods)
     delete read._rateLimiter;
   }
 
   return read;
 };
 
-export const executionPath = (id: string) =>
-  Storage.locate(["executions", id], "");
+export const executionPath = (id: string) => getExecutionRoot(id);
 
 export async function update(
   id: string,
   editor: (session: SessionInfo) => void,
 ) {
-  const result = await Storage.update<SessionInfo>(["session", id], (draft) => {
-    editor(draft);
-    draft.time.updated = Date.now();
-  });
+  // repos.sessions.update sets time.updated automatically
+  const result = await repos.sessions.update(id, editor);
   console.info("updated session", result);
   return result;
 }
@@ -422,8 +418,8 @@ export const messages = async (input: z.output<typeof MessagesInput>) => {
 };
 
 export async function* list() {
-  for (const item of await Storage.list(["session"])) {
-    yield Storage.read<SessionInfo>(item);
+  for (const session of await repos.sessions.list()) {
+    yield session;
   }
 }
 
@@ -433,11 +429,11 @@ const RemoveInput = z.object({
 
 export const remove = async (input: z.output<typeof RemoveInput>) => {
   try {
-    const session = await get(input.sessionId);
+    // Remove associated messages via Storage (messages not yet migrated to repos)
     for (const msg of await Storage.list(["message", input.sessionId])) {
       await Storage.remove(msg);
     }
-    await Storage.remove(["session", input.sessionId]);
+    await repos.sessions.remove(input.sessionId);
   } catch (e) {
     console.error(e);
   }
@@ -502,8 +498,10 @@ export async function saveOperatorState(
   state: OperatorSessionState,
 ): Promise<void> {
   const session = await get(sessionId);
-  const statePath = path.join(session.rootPath, "operator-state.json");
-  writeFileSync(statePath, JSON.stringify(state, null, 2));
+  await repos.operatorState.save(
+    session.rootPath,
+    state as unknown as RepoOperatorSessionState,
+  );
   console.info("saved operator state for session", sessionId);
 }
 
@@ -515,10 +513,8 @@ export async function loadOperatorState(
 ): Promise<OperatorSessionState | null> {
   try {
     const session = await get(sessionId);
-    const statePath = path.join(session.rootPath, "operator-state.json");
-    if (!existsSync(statePath)) return null;
-    const data = readFileSync(statePath, "utf-8");
-    return JSON.parse(data) as OperatorSessionState;
+    const result = await repos.operatorState.load(session.rootPath);
+    return result as unknown as OperatorSessionState | null;
   } catch (error) {
     console.error("Error loading operator state:", error);
     return null;
@@ -528,9 +524,10 @@ export async function loadOperatorState(
 /**
  * Check if a session has saved operator state
  */
-export function hasOperatorState(session: SessionInfo): boolean {
-  const statePath = path.join(session.rootPath, "operator-state.json");
-  return existsSync(statePath);
+export async function hasOperatorState(
+  session: SessionInfo,
+): Promise<boolean> {
+  return repos.operatorState.exists(session.rootPath);
 }
 
 // ============================================================================

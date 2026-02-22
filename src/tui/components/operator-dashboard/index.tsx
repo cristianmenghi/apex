@@ -82,7 +82,7 @@ export default function OperatorDashboard({
 
         // Load operator state if resuming
         if (isResume) {
-          const hasState = sessions.hasOperatorState(s);
+          const hasState = await sessions.hasOperatorState(s);
           if (hasState) {
             const savedState = await sessions.loadOperatorState(sessionId);
             if (savedState) {
