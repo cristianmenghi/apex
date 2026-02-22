@@ -1,88 +1,27 @@
-import os from "os";
-import path from "path";
-import fs from "fs/promises";
+import { repos } from "../storage/repos";
 import { Installation } from "../installation";
+import type { AppConfig } from "../storage/schemas/config";
 
-const DEFAULT_CONFIG: Config = {
-  responsibleUseAccepted: false,
-};
+export type Config = AppConfig;
 
-export interface Config {
-  version?: string;
-  openAiAPIKey?: string | null;
-  anthropicAPIKey?: string | null;
-  openRouterAPIKey?: string | null;
-  bedrockAPIKey?: string | null;
-  responsibleUseAccepted: boolean;
-  // Remote execution providers
-  daytonaAPIKey?: string | null;
-  daytonaOrgId?: string | null;
-  runloopAPIKey?: string | null;
-  // Local LLM
-  localModelUrl?: string | null;
-  localModelName?: string | null;
-  // Theme preferences
-  theme?: string;
-  themeMode?: "dark" | "light" | "auto";
-}
-
-export async function init() {
-  const folder = path.join(os.homedir(), ".pensar");
-  const file = path.join(folder, "config.json");
-  const dirExists = await fs
-    .access(folder)
-    .then(() => true)
-    .catch(() => false);
-  if (!dirExists) {
-    await fs.mkdir(folder, { recursive: true });
-  }
-  const fileExists = await fs
-    .access(file)
-    .then(() => true)
-    .catch(() => false);
-  if (!fileExists) {
-    await fs.writeFile(file, JSON.stringify(DEFAULT_CONFIG));
-  }
+export async function init(): Promise<Config> {
+  // repos.config.get() returns defaults if the file is missing.
+  // Write those defaults to disk so the config file is created.
+  const config = await repos.config.get();
+  await repos.config.update(config);
 
   const version = await Installation.getVersion();
-  return { ...DEFAULT_CONFIG, version };
+  return { ...config, version };
 }
 
 export async function get(): Promise<Config> {
-  const folder = path.join(os.homedir(), ".pensar");
-  const file = path.join(folder, "config.json");
-  const exists = await fs
-    .access(file)
-    .then(() => true)
-    .catch(() => false);
-  if (!exists) {
-    return await init();
-  }
-  const config = await fs.readFile(file, "utf8");
-
-  const parsedConfig = JSON.parse(config);
-
+  const config = await repos.config.get();
   const version = await Installation.getVersion();
-
-  return {
-    ...parsedConfig,
-    version: version,
-    openAiAPIKey: process.env.OPENAI_API_KEY ?? parsedConfig.openAiAPIKey,
-    anthropicAPIKey:
-      process.env.ANTHROPIC_API_KEY ?? parsedConfig.anthropicAPIKey,
-    openRouterAPIKey:
-      process.env.OPENROUTER_API_KEY ?? parsedConfig.openRouterAPIKey,
-    bedrockAPIKey: process.env.BEDROCK_API_KEY ?? parsedConfig.bedrockAPIKey,
-    daytonaAPIKey: process.env.DAYTONA_API_KEY ?? parsedConfig.daytonaAPIKey,
-    daytonaOrgId: process.env.DAYTONA_ORG_ID ?? parsedConfig.daytonaOrgId,
-    runloopAPIKey: process.env.RUNLOOP_API_KEY ?? parsedConfig.runloopAPIKey,
-  };
+  return { ...config, version };
 }
 
 export async function update(config: Partial<Config>) {
-  const currentConfig = await get();
-  const newConfig = { ...currentConfig, ...config };
-  const folder = path.join(os.homedir(), ".pensar");
-  const file = path.join(folder, "config.json");
-  await fs.writeFile(file, JSON.stringify(newConfig));
+  // Strip `version` — it's a runtime-only field, not persisted.
+  const { version: _, ...rest } = config;
+  await repos.config.update(rest);
 }
