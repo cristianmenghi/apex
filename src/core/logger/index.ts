@@ -1,6 +1,6 @@
 import { sessions, type SessionInfo } from "../session";
-import { appendFileSync, existsSync, mkdirSync } from "fs";
 import path from "path";
+import { repos } from "../storage/repos";
 
 export enum LogLevel {
   INFO = "INFO",
@@ -12,32 +12,29 @@ export enum LogLevel {
 
 export class Logger {
   private session: SessionInfo;
-  private logFilePath: string;
+  private logsPath: string;
+  private fileName: string;
 
   constructor(session: SessionInfo, fileName?: string) {
     this.session = session;
     const rootPath = sessions.getExecutionRoot(session.id);
-    const logsPath = path.join(rootPath, "logs");
-    this.logFilePath = path.join(logsPath, fileName || "agent.log");
-
-    // Ensure logs directory exists
-    if (!existsSync(logsPath)) {
-      mkdirSync(logsPath, { recursive: true });
-    }
+    this.logsPath = path.join(rootPath, "logs");
+    this.fileName = fileName || "agent.log";
   }
 
   /**
-   * Write a log message to the log file
+   * Write a log message to the log file.
+   *
+   * Uses fire-and-forget: the async repo append is dispatched but not
+   * awaited so that the public logging methods stay synchronous.
    */
   private writeLog(level: LogLevel, message: string): void {
     const timestamp = new Date().toISOString();
     const logEntry = `${timestamp} - [${level}] ${message}\n`;
 
-    try {
-      appendFileSync(this.logFilePath, logEntry, "utf8");
-    } catch (error) {
+    repos.logs.append(this.logsPath, this.fileName, logEntry).catch((error) => {
       console.error(`Failed to write to log file: ${error}`);
-    }
+    });
   }
 
   /**
@@ -79,7 +76,7 @@ export class Logger {
    * Get the current log file path
    */
   public getLogFilePath(): string {
-    return this.logFilePath;
+    return repos.logs.getPath(this.logsPath, this.fileName);
   }
 
   /**
