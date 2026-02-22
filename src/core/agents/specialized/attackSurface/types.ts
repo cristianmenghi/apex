@@ -1,4 +1,4 @@
-import { readFileSync } from "fs";
+import { repos } from "../../../storage/repos";
 
 /**
  * Type definitions for Attack Surface Analysis results
@@ -33,13 +33,18 @@ export interface PentestTarget {
 }
 
 /**
- * Helper function to load attack surface results from a session
+ * Helper function to load attack surface results from a session.
+ * Uses the attack surface repository for validated I/O.
+ *
+ * @param rootPath - Session root path (the repo builds the full file path internally)
  */
-export function loadAttackSurfaceResults(
-  resultsPath: string,
-): AttackSurfaceAnalysisResults {
-  const data = readFileSync(resultsPath, "utf-8");
-  return JSON.parse(data) as AttackSurfaceAnalysisResults;
+export async function loadAttackSurfaceResults(
+  rootPath: string,
+): Promise<AttackSurfaceAnalysisResults | null> {
+  const report = await repos.attackSurface.load(rootPath);
+  if (!report) return null;
+  // The repo-validated AttackSurfaceReport is structurally compatible
+  return report as unknown as AttackSurfaceAnalysisResults;
 }
 
 /**

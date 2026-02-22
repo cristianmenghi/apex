@@ -127,17 +127,15 @@ export class BlackboxAttackSurfaceAgent extends OffensiveSecurityAgent<AttackSur
       ],
       toolChoice: "auto",
 
-      resolveResult: () => {
+      resolveResult: async () => {
         let results: AttackSurfaceAnalysisResults | null = null;
         let targets: PentestTarget[] = [];
 
-        if (existsSync(resultsPath)) {
-          try {
-            results = loadAttackSurfaceResults(resultsPath);
-            targets = results.targets || [];
-          } catch {
-            // Report may not have been written yet
-          }
+        try {
+          results = await loadAttackSurfaceResults(session.rootPath);
+          targets = results?.targets || [];
+        } catch {
+          // Report may not have been written yet
         }
 
         return { results, targets, resultsPath, assetsPath };

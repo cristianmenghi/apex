@@ -5,6 +5,7 @@ import { join } from "path";
 import type { AIModel } from "../../ai";
 import type { AIAuthConfig } from "../../ai/utils";
 import { type SessionInfo } from "../../session";
+import { repos } from "../../storage/repos";
 import type { ComparisonResult } from "./benchmark/types";
 import { OffensiveSecurityAgent } from "../offSecAgent/offensiveSecurityAgent";
 
@@ -54,12 +55,27 @@ export interface BenchmarkComparisonResult {
  * `consume()` returns a {@link BenchmarkComparisonResult}.
  */
 export class BenchmarkComparisonAgent extends OffensiveSecurityAgent<BenchmarkComparisonResult> {
-  constructor(opts: BenchmarkComparisonAgentInput) {
+  /**
+   * Create a BenchmarkComparisonAgent. Uses async factory to load actual
+   * findings via the repository before constructing the agent.
+   */
+  static async create(
+    opts: BenchmarkComparisonAgentInput,
+  ): Promise<BenchmarkComparisonAgent> {
+    const actualFindings = await formatActualFindings(
+      opts.session.findingsPath,
+    );
+    return new BenchmarkComparisonAgent(opts, actualFindings);
+  }
+
+  constructor(
+    opts: BenchmarkComparisonAgentInput,
+    actualFindings: string,
+  ) {
     const { model, repoPath, session, authConfig, onStepFinish, abortSignal } =
       opts;
 
     const expectedResults = loadExpectedResults(repoPath);
-    const actualFindings = loadActualFindings(session.rootPath);
     const resultsPath = join(session.rootPath, "comparison-results.json");
 
     super({
@@ -191,28 +207,20 @@ function loadExpectedResults(repoPath: string): Record<string, unknown>[] {
   return results;
 }
 
-function loadActualFindings(sessionPath: string): string {
-  const findingsDir = join(sessionPath, "findings");
-  if (!existsSync(findingsDir)) return "No findings directory found.";
+async function formatActualFindings(findingsPath: string): Promise<string> {
+  const findings = await repos.findings.list(findingsPath);
 
-  const findings = readdirSync(findingsDir)
-    .filter((f) => f.endsWith(".json"))
-    .map((f) => {
-      try {
-        const finding = JSON.parse(readFileSync(join(findingsDir, f), "utf-8"));
-        return `### ${finding.title}
-- **Severity:** ${finding.severity}
-- **Endpoint:** ${finding.endpoint || "N/A"}
-- **Category:** ${finding.vulnerabilityClass || finding.category || "N/A"}
-- **Description:** ${finding.description || "N/A"}
-- **Evidence:** ${finding.evidence || "N/A"}`;
-      } catch {
-        return null;
-      }
-    })
-    .filter(Boolean);
+  if (findings.length === 0) {
+    return "No findings were documented.";
+  }
 
-  return findings.length > 0
-    ? findings.join("\n\n")
-    : "No findings were documented.";
+  return findings
+    .map(
+      (f) => `### ${f.title}
+- **Severity:** ${f.severity}
+- **Endpoint:** ${f.endpoint || "N/A"}
+- **Description:** ${f.description || "N/A"}
+- **Evidence:** ${f.evidence || "N/A"}`,
+    )
+    .join("\n\n");
 }

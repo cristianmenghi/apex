@@ -9,7 +9,7 @@ import {
 export async function runBenchmarkComparisonAgent(
   input: BenchmarkComparisonAgentInput,
 ) {
-  const agent = new BenchmarkComparisonAgent(input);
+  const agent = await BenchmarkComparisonAgent.create(input);
 
   const { comparison, resultsPath } = await agent.consume({
     onTextDelta: (d) => process.stdout.write(d.text),

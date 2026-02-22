@@ -355,7 +355,7 @@ export async function runSingleBenchmark(
 
     try {
       console.log(`[${branch}] Running benchmark comparison...`);
-      const compAgent = new BenchmarkComparisonAgent({
+      const compAgent = await BenchmarkComparisonAgent.create({
         repoPath: benchmarkPath,
         model: comparisonModel,
         session,
