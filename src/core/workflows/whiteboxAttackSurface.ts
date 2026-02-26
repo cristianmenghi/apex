@@ -15,7 +15,7 @@ import {
   type App,
   type RiskScore,
 } from "../agents/specialized/whiteboxAttackSurface/types";
-import type { AIModel } from "../ai";
+import type { AIModel, CacheMetrics } from "../ai";
 import type { AIAuthConfig } from "../ai/utils";
 import type { SessionInfo } from "../session";
 import type { ConsumeCallbacks } from "../agents/offSecAgent/types";
@@ -23,6 +23,7 @@ import { runWithBoundedConcurrency } from "../utils/concurrency";
 import { scoreEndpoints } from "./riskScoring";
 import { execFileSync } from "child_process";
 import { createHash } from "crypto";
+import type { StreamTextOnStepFinishCallback, ToolSet } from "ai";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -139,13 +140,8 @@ export interface WhiteboxAttackSurfaceWorkflowInput {
   abortSignal?: AbortSignal;
   callbacks?: ConsumeCallbacks;
   attackSurfaceRegistry?: import("../findings/attackSurfaceRegistry").AttackSurfaceRegistry;
-  onStepFinish?: (event: {
-    usage?: {
-      inputTokens?: number;
-      outputTokens?: number;
-      totalTokens?: number;
-    };
-  }) => void;
+  onStepFinish?: StreamTextOnStepFinishCallback<ToolSet>;
+  onCacheMetrics?: (metrics: CacheMetrics) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -182,6 +178,7 @@ export async function runWhiteboxAttackSurfaceWorkflow(
     callbacks,
     attackSurfaceRegistry,
     onStepFinish,
+    onCacheMetrics,
   } = input;
 
   // =========================================================================
@@ -199,6 +196,7 @@ export async function runWhiteboxAttackSurfaceWorkflow(
     attackSurfaceRegistry,
     callbacks,
     onStepFinish: (event) => onStepFinish?.(event),
+    onCacheMetrics,
     responseSchema: AppsDiscoveryResultSchema,
   });
 
@@ -268,6 +266,7 @@ export async function runWhiteboxAttackSurfaceWorkflow(
         attackSurfaceRegistry,
         callbacks,
         onStepFinish: (event) => onStepFinish?.(event),
+        onCacheMetrics,
         responseSchema: EndpointsDiscoveryResultSchema,
       });
 
