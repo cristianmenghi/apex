@@ -212,6 +212,8 @@ export interface TokenUsage {
   inputTokens: number;
   outputTokens: number;
   totalTokens: number;
+  cachedTokens: number;
+  cacheWriteTokens: number;
 }
 
 export function accumulateTokenUsage(
@@ -224,5 +226,7 @@ export function accumulateTokenUsage(
     inputTokens: current.inputTokens + stepInputTokens,
     outputTokens: current.outputTokens + stepOutputTokens,
     totalTokens: current.totalTokens + stepInputTokens + stepOutputTokens,
+    cachedTokens: current.cachedTokens,
+    cacheWriteTokens: current.cacheWriteTokens,
   };
 }
