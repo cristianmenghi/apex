@@ -523,6 +523,9 @@ function CommandDisplay({
           <RouteSwitch.Case when="help">
             <HelpDialog />
           </RouteSwitch.Case>
+          <RouteSwitch.Case when="credits">
+            <CreditsFlow onOpenAuthDialog={onOpenAuthDialog} />
+          </RouteSwitch.Case>
           <RouteSwitch.Case when="skills">
             <SkillsDialog />
           </RouteSwitch.Case>
