@@ -286,8 +286,8 @@ export default function SkillsDialog() {
       <box marginTop={2}>
         <DialogControls
           controls={[
-            { key: "↑/↓", label: "Navigate" },
             { key: "Enter", label: "Details", variant: "primary" },
+            { key: "↑/↓", label: "Navigate" },
             { key: "Esc", label: "Go Back" },
           ]}
         />

@@ -196,8 +196,8 @@ export default function HelpDialog({ onClose }: HelpDialogProps) {
         {/* Footer */}
         <DialogControls
           controls={[
-            { key: "↑/↓", label: "Navigate" },
             { key: "Enter", label: "Details", variant: "primary" },
+            { key: "↑/↓", label: "Navigate" },
             { key: "Esc", label: "Close" },
           ]}
         />
