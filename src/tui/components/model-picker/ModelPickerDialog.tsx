@@ -52,12 +52,7 @@ export default function ModelPickerDialog({ onClose }: ModelPickerDialogProps) {
         </box>
         <box marginTop={1} paddingLeft={1}>
           <DialogControls
-            controls={[
-              { key: "Enter", label: "Confirm", variant: "primary" },
-              { key: "↑/↓", label: "Navigate" },
-              { key: "←/→", label: "Collapse/Expand" },
-              { key: "Esc", label: "Close" },
-            ]}
+            controls={[{ key: "Enter", label: "Confirm", variant: "primary" }]}
           />
         </box>
       </box>

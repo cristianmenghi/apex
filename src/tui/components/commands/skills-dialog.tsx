@@ -220,12 +220,7 @@ export default function SkillsDialog() {
 
         {/* Footer */}
         <box marginTop={1} paddingBottom={1}>
-          <DialogControls
-            controls={[
-              { key: "↑/↓", label: "Scroll" },
-              { key: "Esc", label: "Back" },
-            ]}
-          />
+          <DialogControls controls={[{ key: "Esc", label: "Back" }]} />
         </box>
       </box>
     );
@@ -287,7 +282,6 @@ export default function SkillsDialog() {
         <DialogControls
           controls={[
             { key: "Enter", label: "Details", variant: "primary" },
-            { key: "↑/↓", label: "Navigate" },
             { key: "Esc", label: "Go Back" },
           ]}
         />
