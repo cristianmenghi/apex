@@ -9,6 +9,7 @@ import { useAgent } from "../../context/agent";
 import { useConfig } from "../../context/config";
 import { useTheme } from "../../theme";
 import { Dialog } from "../../context/dialog";
+import { DialogControls } from "../shared/dialog-controls";
 import { ModelPicker } from "./ModelPicker";
 
 interface ModelPickerDialogProps {
@@ -35,7 +36,6 @@ export default function ModelPickerDialog({ onClose }: ModelPickerDialogProps) {
           flexDirection="column"
           paddingLeft={1}
           marginTop={1}
-          flexGrow={1}
           flexShrink={1}
           overflow="hidden"
         >
@@ -51,7 +51,10 @@ export default function ModelPickerDialog({ onClose }: ModelPickerDialogProps) {
           />
         </box>
         <box marginTop={1} paddingLeft={1}>
-          <text fg={colors.textMuted}>[Enter] confirm • [ESC] close</text>
+          <DialogControls controls={[
+            { key: "Enter", label: "Confirm", variant: "primary" },
+            { key: "Esc", label: "Close" },
+          ]} />
         </box>
       </box>
     </Dialog>

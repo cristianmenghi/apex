@@ -3,6 +3,7 @@ import { useKeyboard } from "@opentui/react";
 import { useDimensions } from "../context/dimensions";
 import { ScrollBoxRenderable, SyntaxStyle } from "@opentui/core";
 import { useTheme } from "../theme";
+import { DialogControls } from "./shared/dialog-controls";
 
 interface ReportViewerDialogProps {
   content: string;
@@ -144,16 +145,11 @@ export default function ReportViewerDialog({
           flexDirection="row"
           justifyContent="space-between"
         >
-          <text fg={colors.textMuted}>
-            <span fg={colors.primary}>[↑/↓]</span> Scroll{" "}
-            {onOpenExternal && (
-              <>
-                <span fg={colors.primary}>[E]</span>
-                {" Open in Editor "}
-              </>
-            )}
-            <span fg={colors.primary}>[Esc]</span> Close
-          </text>
+          <DialogControls controls={[
+            { key: "↑/↓", label: "Scroll" },
+            ...(onOpenExternal ? [{ key: "E", label: "Open in Editor", variant: "primary" as const }] : []),
+            { key: "Esc", label: "Close" },
+          ]} />
           <text fg={colors.textMuted}>{lineCount} lines</text>
         </box>
       </box>

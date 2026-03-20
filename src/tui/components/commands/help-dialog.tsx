@@ -11,6 +11,7 @@ import { ScrollBoxRenderable } from "@opentui/core";
 import { scrollToIndex } from "../../utils/scroll";
 import { useCommand } from "../../context/command";
 import { Dialog } from "../../context/dialog";
+import { DialogControls } from "../shared/dialog-controls";
 import { useTheme } from "../../theme";
 
 interface HelpDialogProps {
@@ -100,9 +101,8 @@ export default function HelpDialog({ onClose }: HelpDialogProps) {
       <Dialog size="large" onClose={onClose}>
         <box flexDirection="column" padding={2} gap={1} width="100%">
           {/* Header */}
-          <box flexDirection="row" justifyContent="space-between" width="100%">
+          <box width="100%">
             <text fg={colors.primary}>/{selectedCommand.name}</text>
-            <text fg={colors.textMuted}>esc to close</text>
           </box>
 
           {/* Description */}
@@ -138,7 +138,9 @@ export default function HelpDialog({ onClose }: HelpDialogProps) {
 
           {/* Footer hint */}
           <box marginTop={1}>
-            <text fg={colors.textMuted}>[enter/esc] back</text>
+            <DialogControls controls={[
+              { key: "Enter/Esc", label: "Back", variant: "primary" },
+            ]} />
           </box>
         </box>
       </Dialog>
@@ -150,9 +152,8 @@ export default function HelpDialog({ onClose }: HelpDialogProps) {
     <Dialog size="large" onClose={onClose}>
       <box flexDirection="column" padding={2} gap={1} width="100%">
         {/* Header */}
-        <box flexDirection="row" justifyContent="space-between" width="100%">
+        <box width="100%">
           <text fg={colors.text}>Commands</text>
-          <text fg={colors.textMuted}>esc to close</text>
         </box>
 
         {/* Commands list */}
@@ -191,9 +192,11 @@ export default function HelpDialog({ onClose }: HelpDialogProps) {
         </scrollbox>
 
         {/* Footer */}
-        <text fg={colors.textMuted}>
-          [↑/↓] navigate [enter] details [esc] close
-        </text>
+        <DialogControls controls={[
+          { key: "↑/↓", label: "Navigate" },
+          { key: "Enter", label: "Details", variant: "primary" },
+          { key: "Esc", label: "Close" },
+        ]} />
       </box>
     </Dialog>
   );

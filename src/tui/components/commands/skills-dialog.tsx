@@ -12,6 +12,7 @@ import { useCommand } from "../../context/command";
 import { useRoute } from "../../context/route";
 import { useTheme } from "../../theme";
 import type { SkillEntry, SkillSource } from "../../../core/skills/types";
+import { DialogControls } from "../shared/dialog-controls";
 
 /** Rough token estimate: ~4 chars per token */
 function estimateTokens(text: string): number {
@@ -219,13 +220,10 @@ export default function SkillsDialog() {
 
         {/* Footer */}
         <box marginTop={1} paddingBottom={1}>
-          <text>
-            <span fg={colors.primary}>█ </span>
-            <span fg={colors.text}>[↑][↓]</span>
-            <span fg={colors.textMuted}> scroll </span>
-            <span fg={colors.text}>[ESC]</span>
-            <span fg={colors.textMuted}> back</span>
-          </text>
+          <DialogControls controls={[
+            { key: "↑/↓", label: "Scroll" },
+            { key: "Esc", label: "Back" },
+          ]} />
         </box>
       </box>
     );
@@ -283,17 +281,12 @@ export default function SkillsDialog() {
       </box>
 
       {/* Footer */}
-      <box flexDirection="column" marginTop={2}>
-        <text>
-          <span fg={colors.primary}>█ </span>
-          <span fg={colors.textMuted}>Press </span>
-          <span fg={colors.text}>[↑][↓]</span>
-          <span fg={colors.textMuted}> to navigate </span>
-          <span fg={colors.text}>[Enter]</span>
-          <span fg={colors.textMuted}> for details </span>
-          <span fg={colors.text}>[ESC]</span>
-          <span fg={colors.textMuted}> to go back</span>
-        </text>
+      <box marginTop={2}>
+        <DialogControls controls={[
+          { key: "↑/↓", label: "Navigate" },
+          { key: "Enter", label: "Details", variant: "primary" },
+          { key: "Esc", label: "Go Back" },
+        ]} />
       </box>
     </box>
   );
